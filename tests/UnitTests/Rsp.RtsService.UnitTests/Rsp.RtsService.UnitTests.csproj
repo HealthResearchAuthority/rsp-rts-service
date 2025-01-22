@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+      <PackageReference Include="AutoFixture" Version="4.18.1" />
+      <PackageReference Include="AutoFixture.Xunit2" Version="4.18.1" />
+      <PackageReference Include="Bogus" Version="35.6.1" />
+      <PackageReference Include="coverlet.collector" Version="6.0.4">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="coverlet.msbuild" Version="6.0.4">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.1" />
+      <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+      <PackageReference Include="Moq" Version="4.20.72" />
+      <PackageReference Include="Moq.AutoMock" Version="3.5.0" />
+      <PackageReference Include="Shouldly" Version="4.2.1" />
+      <PackageReference Include="xunit" Version="2.9.3" />
+      <PackageReference Include="xunit.runner.visualstudio" Version="3.0.1">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="XunitXml.TestLogger" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Domain\Rsp.RtsService.Domain\Rsp.RtsService.Domain.csproj" />
+    <ProjectReference Include="..\..\..\src\Application\Rsp.RtsService.Application\Rsp.RtsService.Application.csproj" />
+    <ProjectReference Include="..\..\..\src\Services\Rsp.RtsService.Services\Rsp.RtsService.Services.csproj" />
+    <ProjectReference Include="..\..\..\src\Infrastructure\Rsp.RtsService.Infrastructure\Rsp.RtsService.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\src\WebApi\Rsp.RtsService.WebApi\Rsp.RtsService.WebApi.csproj" />
+  </ItemGroup>
+
+</Project>
