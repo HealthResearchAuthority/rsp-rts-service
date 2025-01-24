@@ -11,22 +11,23 @@ namespace Rsp.RtsService.WebApi.Controllers;
 // TODO: Example API Controller using CQRS pattern, update as needed
 [ApiController]
 [Route("[controller]")]
-public class ExampleController(IMediator mediator) : ControllerBase
+public class OrganisationsController(IMediator mediator) : ControllerBase
 {
-    [HttpGet]
-    [Produces<Entity>]
-    public async Task<QueryResponse> QueryRequest(int id)
+    /// <summary>
+    /// Query organisations by complete or incomplete name. 
+    /// </summary>
+    [HttpGet("searchByName")]
+    public async Task<QueryResponse> SearchByName(string name)
     {
-        var query = new Query(id);
-
-        return await mediator.Send(query);
+        throw new NotImplementedException();
     }
 
-    [HttpPost]
-    public async Task<CommandResponse> CommandRequest(CommandRequest commandRequest)
+    /// <summary>
+    /// Get a single organisation by ID.
+    /// </summary>
+    [HttpGet("getById")]
+    public async Task<QueryResponse> GetById(string id)
     {
-        var request = new Command(commandRequest);
-
-        return await mediator.Send(request);
+        throw new NotImplementedException();
     }
 }

@@ -6,7 +6,7 @@ namespace Rsp.RtsService.Application.Contracts.Services;
 /// <summary>
 /// Interface to create/read/update the records in the database
 /// </summary>
-public interface IService
+public interface IRtsService
 {
     /// <summary>
     /// Returns a single entity

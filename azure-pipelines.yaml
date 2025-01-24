@@ -15,7 +15,6 @@ parameters:
       - dev
       - systemtest_manual
       - systemtest_auto
-      - system_integration_test
       - uat
       - pre_prod
       - production
@@ -41,15 +40,22 @@ parameters:
     default: 10
 
 variables:
-  - group: 'Test Automation'
+  - group: 'RTS_ContainerApp' # TODO replace value
   - name: vstsFeed
     value: "0e030eb0-cb72-4f42-b99a-26e6544271c3/0a3e0ad2-23b6-4e8b-ae12-cd6d01fe97e7"
   - name: solution
     value: "**/*.sln"
   - name: project
     value: "**/*.csproj"
+  - name: projectForContainerBuild
+    value: "Rsp.RtsService.csproj"
   - name: buildConfiguration
     value: "Release"
+  - name: service_connection
+    ${{ if in(parameters.env, 'dev') }}:
+      value: "ARM Dev Connection New"
+    ${{ if in(parameters.env, 'systemtest_auto') }}:
+      value: "ARM Automated Test Connection" 
 
 resources:
   repositories:
@@ -65,41 +71,44 @@ resources:
       type: git
       name: 'Research Systems Programme/rsp-iras-api-tests'
       ref: main
-    # TODO: Uncomment the following if using .NET Aspire
-    # - repository: service_defaults
-    #   type: git
-    #   name: 'Research Systems Programme/rsp-service-defaults'
-    #   ref: main
+    - repository: service_defaults # TODO double check if this is needed for this service
+      type: git
+      name: 'Research Systems Programme/rsp-service-defaults'
+      ref: main
 
 stages:
   - stage: dev
+    variables: 
+    - group: 'DevelopmentEnvironment'
+    condition: eq('${{ parameters.env }}', 'dev')  
     jobs:
       - template: jobs/build.yaml@library
         parameters:
           run_github_security_scan: ${{ parameters.run_github_security_scan }}
-          # TODO: bind this project in sonar cloud then provide the following values for code analysis
-          #sonar_project_key: [replace this with sonar project key]
-          #sonar_project_name: [replace this with sonar project name]
-
-          # TODO: if using .NET Aspire uncomment the following lines
-          #install_aspire: true
-          #service_defaults_repo: service_defaults
-
-      #- template: jobs/deploy.yaml@library
-      - job:
-        displayName: Deploy to Dev
-        steps:
-        - script: |
-            echo 'deploying to dev'
+          sonar_project_key: FutureIRAS_rsp-rts-service # TODO
+          sonar_project_name: rsp-rts-service
+          install_aspire: true
+          service_defaults_repo: service_defaults
+      - template: jobs/deploy.yaml@library
+        parameters:
+          install_aspire: true
+          service_defaults_repo: service_defaults
 
   - stage: systemtest_auto
+    variables: 
+    - group: 'STAutoEnvironment'
+    condition: eq('${{ parameters.env }}', 'systemtest_auto')
     jobs:
-      #- template: jobs/deploy.yaml@library
-      - job:
-        displayName: Deploy to SystemTest Auto
-        steps:
-        - script: |
-            echo 'deploying to systemtest_auto'
+      - template: jobs/deploy.yaml@library
+        parameters:
+          install_aspire: true
+          service_defaults_repo: service_defaults
+      - ${{ if eq(variables.run_e2e_tests, 'true') }}:
+        - template: jobs/e2e_tests.yaml@library
+          parameters:
+            browser: ${{ parameters.browser }}
+            repo: e2e_tests
+            tests_run_timeout: ${{ parameters.tests_run_timeout }}
 
       - ${{ if eq(variables.run_e2e_tests, 'true') }}:
         - template: jobs/e2e_tests.yaml@library
