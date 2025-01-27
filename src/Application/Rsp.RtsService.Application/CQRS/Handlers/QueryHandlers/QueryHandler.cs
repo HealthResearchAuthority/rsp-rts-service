@@ -8,7 +8,7 @@ namespace Rsp.RtsService.Application.CQRS.Handlers.QueryHandlers;
 
 // TODO: This is just an example of a query handler which takes logger and IService
 // as dependencies, please rename/modify as appropriate
-public class QueryHandler(ILogger<QueryHandler> logger, IService service) : IRequestHandler<Query, QueryResponse>
+public class QueryHandler(ILogger<QueryHandler> logger, IRtsService service) : IRequestHandler<Query, QueryResponse>
 {
     public async Task<QueryResponse> Handle(Query request, CancellationToken cancellationToken)
     {

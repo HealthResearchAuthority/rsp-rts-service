@@ -6,9 +6,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Rsp.RtsService.Application.CQRS.Handlers.CommandHandlers;
 
-// TODO: This is just an example of a command handler which takes logger and IService
+// TODO: This is just an example of a command handler which takes logger and IRtsService
 // as dependencies, please rename/modify as appropriate
-public class CommandHandler(ILogger<CommandHandler> logger, IService serivce) : IRequestHandler<Command, CommandResponse>
+public class CommandHandler(ILogger<CommandHandler> logger, IRtsService serivce) : IRequestHandler<Command, CommandResponse>
 {
     public async Task<CommandResponse> Handle(Command request, CancellationToken cancellationToken)
     {

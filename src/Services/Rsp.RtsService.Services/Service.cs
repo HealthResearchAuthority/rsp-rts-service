@@ -11,7 +11,7 @@ namespace Rsp.RtsService.Services;
 // TODO: This is the example implementation of a service calling
 // repository methods and executing commands like create, update, get
 // please update as necessary
-public class Service(IRepository repository) : IService
+public class Service(IRepository repository) : IRtsService
 {
     // usually the create command to create a record in the database
     public async Task<CommandResponse> ExecuteCreateCommand(CommandRequest request)
