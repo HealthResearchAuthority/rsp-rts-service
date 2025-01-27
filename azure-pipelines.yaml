@@ -25,7 +25,7 @@ parameters:
   - name: run_github_security_scan
     displayName: Run GitHub Advanced Security Scan
     type: boolean
-    default: true
+    default: false
   - name: browser
     displayName: Select a Browser
     type: string
