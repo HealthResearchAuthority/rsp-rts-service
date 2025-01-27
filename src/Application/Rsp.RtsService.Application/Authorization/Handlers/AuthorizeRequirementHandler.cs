@@ -1,6 +1,8 @@
-﻿using System.Security.Claims;
-using Rsp.RtsService.Application.Authorization.Requirements;
+﻿using Rsp.RtsService.Application.Authorization.Requirements;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Rsp.Logging.Extensions;
 
@@ -46,7 +48,7 @@ public class AuthorizeRequirementHandler(ILogger<AuthorizeRequirementHandler> lo
         // user should be in the role specified by the requirement
         if (roleClaims.Find(claim => claim.Value == AuthorizeRequirement.Role) == null)
         {
-            logger.LogErrorHp(string.Join(",", roleClaims), "ERR_AUTH_FAILED", "user is not in the required role");
+            logger.LogAsError(string.Join(",", roleClaims), "ERR_AUTH_FAILED", "user is not in the required role");
 
             // Do not fail the requirement as the handler is meant to work as OR
             // so the next handler will pick the next requirement, uncomment if AND behaviour is intended
@@ -55,16 +57,30 @@ public class AuthorizeRequirementHandler(ILogger<AuthorizeRequirementHandler> lo
             return;
         }
 
-        // if you have further requiements based on the http context
-        // uncomment the following and validate as needed
-        //if (context.Resource is not HttpContext httpContext)
-        //{
-        //    return;
-        //}
+        if (context.Resource is not HttpContext httpContext)
+        {
+            return;
+        }
+
+        // this list should come from database hardcoded for now
+        // TODOI: change this to fetch the statuses, reviewer can see, from database
+        requirement.AllowedStatuses = ["pending"];
+
+        var routeValues = httpContext.GetRouteData().Values;
+
+        // can't find the status in the query or route
+        // or it's not one of the required statuses
+        if (routeValues["status"] is not string status ||
+            requirement.AllowedStatuses.FirstOrDefault(required => required == status) == null)
+        {
+            logger.LogAsError(string.Join(",", roleClaims), "ERR_AUTH_FAILED", "user is not allowed to query the status");
+
+            return;
+        }
 
         context.Succeed(requirement);
 
-        logger.LogInformation("requirement was met successfully");
+        logger.LogAsInformation("requirement was met successfully");
 
         await Task.CompletedTask;
     }

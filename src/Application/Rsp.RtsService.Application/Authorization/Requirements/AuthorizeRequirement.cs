@@ -11,7 +11,11 @@ public class AuthorizeRequirement : IAuthorizationRequirement
     /// <summary>
     /// User should be in this role
     /// </summary>
-    public static string Role => "role";
+    public static string Role => "reviewer";
 
-    // TODO: define more properties here as needed and validate in the handler
+    /// <summary>
+    /// List of application statuses reviewer can query.
+    /// These will be retrieved from the database for the user
+    /// </summary>
+    public IEnumerable<string> AllowedStatuses { get; set; } = [];
 }

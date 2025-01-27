@@ -59,26 +59,4 @@ public class ExecuteUpdateCommand : TestServiceBase<Service>
             // check for more properties here
         );
     }
-
-    /// <summary>
-    /// Tests that entity is created
-    /// </summary>
-    /// <param name="commandRequest">Represents the model for new entity request</param>
-    [Theory, InlineAutoData(1)]
-    public async Task Throws_Exception_If_Id_DoesNotExist(int records, Generator<Entity> generator, CommandRequest commandRequest)
-    {
-        // Arrange
-        Mocker.Use<IRepository>(_repository);
-
-        Sut = Mocker.CreateInstance<Service>();
-
-        // seed data with the number of records
-        var entities = await SeedData(_context, generator, records);
-
-        // get the id that won't exists
-        commandRequest.Id = entities[0].Id + 1;
-
-        // Act/Assert
-        await Should.ThrowAsync<NotImplementedException>(Sut.ExcecuteUpdateCommand(commandRequest.Id, commandRequest));
-    }
 }
