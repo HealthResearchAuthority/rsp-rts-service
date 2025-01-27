@@ -56,7 +56,7 @@ if (!builder.Environment.IsDevelopment())
             .ConfigureRefresh(refreshOptions =>
                 refreshOptions
                 .Register("AppSettings:Sentinel", AppSettings.ServiceLabel, refreshAll: true)
-                .SetCacheExpiration(new TimeSpan(0, 0, 15))
+                .SetRefreshInterval(new TimeSpan(0, 0, 15))
             );
         }
     );
@@ -85,7 +85,7 @@ var appSettingsSection = configuration.GetSection(nameof(AppSettings));
 var appSettings = appSettingsSection.Get<AppSettings>();
 
 // adds sql server database context
-services.AddDatabase(configuration);
+//services.AddDatabase(configuration);
 
 // Add services to the container.
 services.AddServices();
@@ -176,6 +176,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 // run the database migration and seed the data
-await app.MigrateAndSeedDatabaseAsync();
+//await app.MigrateAndSeedDatabaseAsync();
 
 await app.RunAsync();
