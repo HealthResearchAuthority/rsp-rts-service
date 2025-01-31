@@ -85,7 +85,7 @@ var appSettingsSection = configuration.GetSection(nameof(AppSettings));
 var appSettings = appSettingsSection.Get<AppSettings>();
 
 // adds sql server database context
-//services.AddDatabase(configuration);
+services.AddDatabase(configuration);
 
 // Add services to the container.
 services.AddServices();
@@ -94,9 +94,8 @@ services.AddHttpContextAccessor();
 
 // routing configuration
 services.AddRouting(options => options.LowercaseUrls = true);
-
 // configures the authentication and authorization
-services.AddAuthenticationAndAuthorization(appSettings!);
+//services.AddAuthenticationAndAuthorization(appSettings!);
 
 // Creating a feature manager without the use of DI. Injecting IFeatureManager
 // via DI is appropriate in consturctor methods. At the startup, it's
@@ -176,6 +175,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 // run the database migration and seed the data
-//await app.MigrateAndSeedDatabaseAsync();
+await app.MigrateAndSeedDatabaseAsync();
 
 await app.RunAsync();

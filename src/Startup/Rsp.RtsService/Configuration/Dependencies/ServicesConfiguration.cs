@@ -22,8 +22,8 @@ public static class ServicesConfiguration
 
         services.AddSingleton<ITokenHelper, TokenHelper>();
 
-        services.AddTransient<IRtsService, Service>();
-        services.AddTransient<IRepository, Repository>();
+        services.AddTransient<IOrganisationService, OrganisationService>();
+        services.AddTransient<IOrganisationRepository, OrganisationRepository>();
         services.AddMediatR(option => option.RegisterServicesFromAssemblyContaining<IApplication>());
 
         return services;
