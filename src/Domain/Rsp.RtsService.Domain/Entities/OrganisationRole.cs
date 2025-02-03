@@ -13,8 +13,8 @@ public class OrganisationRole
     public string Status { get; set; } = null!;
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
-    public DateTime LastUpdated { get; set; }
+    public DateTime? LastUpdated { get; set; }
     public DateTime SystemUpdated { get; set; }
     public DateTime Imported { get; set; }
-    public DateTime CreatedDate { get; set; }
+    public DateTime? CreatedDate { get; set; }
 }

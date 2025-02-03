@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Rsp.RtsService.Infrastructure;
 
@@ -11,9 +12,11 @@ using Rsp.RtsService.Infrastructure;
 namespace Rsp.RtsService.Infrastructure.Migrations
 {
     [DbContext(typeof(RtsDbContext))]
-    partial class RtsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250131162503_UpdateDataModel")]
+    partial class UpdateDataModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -56,8 +59,6 @@ namespace Rsp.RtsService.Infrastructure.Migrations
                         .HasColumnType("varchar(150)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Type");
 
                     b.ToTable("Organisation");
                 });
@@ -128,17 +129,6 @@ namespace Rsp.RtsService.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("OrganisationTermset");
-                });
-
-            modelBuilder.Entity("Rsp.RtsService.Domain.Entities.Organisation", b =>
-                {
-                    b.HasOne("Rsp.RtsService.Domain.Entities.OrganisationTermset", "TypeEntity")
-                        .WithMany()
-                        .HasForeignKey("Type")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("TypeEntity");
                 });
 
             modelBuilder.Entity("Rsp.RtsService.Domain.Entities.OrganisationRole", b =>

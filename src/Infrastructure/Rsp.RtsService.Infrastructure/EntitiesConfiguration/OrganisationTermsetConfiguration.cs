@@ -7,6 +7,10 @@ public class OrganisationTermsetConfiguration : IEntityTypeConfiguration<Organis
 {
     public void Configure(EntityTypeBuilder<OrganisationTermset> builder)
     {
+        builder
+            .Property(p => p.Id)
+            .HasColumnType("varchar(150)");
+
         builder.HasKey(nameof(OrganisationTermset.Id));
     }
 }

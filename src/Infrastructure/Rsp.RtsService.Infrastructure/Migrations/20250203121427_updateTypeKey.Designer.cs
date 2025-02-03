@@ -12,8 +12,8 @@ using Rsp.RtsService.Infrastructure;
 namespace Rsp.RtsService.Infrastructure.Migrations
 {
     [DbContext(typeof(RtsDbContext))]
-    [Migration("20250131122145_.NetVersionUpdate")]
-    partial class NetVersionUpdate
+    [Migration("20250203121427_updateTypeKey")]
+    partial class updateTypeKey
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -28,32 +28,27 @@ namespace Rsp.RtsService.Infrastructure.Migrations
             modelBuilder.Entity("Rsp.RtsService.Domain.Entities.Organisation", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("varchar(150)");
 
                     b.Property<string>("Address")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CountryIdentifier")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CountryName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("Imported")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("LastUpdated")
+                    b.Property<DateTime?>("LastUpdated")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Status")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("SystemUpdated")
@@ -61,9 +56,11 @@ namespace Rsp.RtsService.Infrastructure.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("varchar(150)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Type");
 
                     b.ToTable("Organisation");
                 });
@@ -71,18 +68,18 @@ namespace Rsp.RtsService.Infrastructure.Migrations
             modelBuilder.Entity("Rsp.RtsService.Domain.Entities.OrganisationRole", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("varchar(150)");
 
                     b.Property<string>("OrganisationId")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("varchar(150)");
 
                     b.Property<string>("Scoper")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("varchar(150)");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("CreatedDate")
+                    b.Property<DateTime?>("CreatedDate")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("EndDate")
@@ -91,7 +88,7 @@ namespace Rsp.RtsService.Infrastructure.Migrations
                     b.Property<DateTime>("Imported")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("LastUpdated")
+                    b.Property<DateTime?>("LastUpdated")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Status")
@@ -111,7 +108,7 @@ namespace Rsp.RtsService.Infrastructure.Migrations
             modelBuilder.Entity("Rsp.RtsService.Domain.Entities.OrganisationTermset", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("varchar(150)");
 
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
@@ -119,11 +116,10 @@ namespace Rsp.RtsService.Infrastructure.Migrations
                     b.Property<DateTime>("Imported")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("LastUpdated")
+                    b.Property<DateTime?>("LastUpdated")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("StartDate")
@@ -135,6 +131,17 @@ namespace Rsp.RtsService.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("OrganisationTermset");
+                });
+
+            modelBuilder.Entity("Rsp.RtsService.Domain.Entities.Organisation", b =>
+                {
+                    b.HasOne("Rsp.RtsService.Domain.Entities.OrganisationTermset", "TypeEntity")
+                        .WithMany("Organisations")
+                        .HasForeignKey("Type")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TypeEntity");
                 });
 
             modelBuilder.Entity("Rsp.RtsService.Domain.Entities.OrganisationRole", b =>
@@ -149,6 +156,11 @@ namespace Rsp.RtsService.Infrastructure.Migrations
             modelBuilder.Entity("Rsp.RtsService.Domain.Entities.Organisation", b =>
                 {
                     b.Navigation("Roles");
+                });
+
+            modelBuilder.Entity("Rsp.RtsService.Domain.Entities.OrganisationTermset", b =>
+                {
+                    b.Navigation("Organisations");
                 });
 #pragma warning restore 612, 618
         }
