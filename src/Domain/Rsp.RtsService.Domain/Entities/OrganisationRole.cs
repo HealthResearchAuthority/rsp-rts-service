@@ -16,5 +16,5 @@ public class OrganisationRole
     public DateTime? LastUpdated { get; set; }
     public DateTime SystemUpdated { get; set; }
     public DateTime Imported { get; set; }
-    public DateTime? CreatedDate { get; set; }
+    public DateTime CreatedDate { get; set; }
 }
