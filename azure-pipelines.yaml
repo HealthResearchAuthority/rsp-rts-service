@@ -72,8 +72,9 @@ resources:
       name: 'Research Systems Programme/rsp-iras-api-tests'
       ref: main
     - repository: service_defaults # TODO double check if this is needed for this service
-      type: git
-      name: 'Research Systems Programme/rsp-service-defaults'
+      type: github
+      name: 'HealthResearchAuthority/rsp-service-defaults'
+      endpoint: AzureDevOpsToGitHubConnection
       ref: main
 
 stages:
@@ -85,7 +86,7 @@ stages:
       - template: jobs/build.yaml@library
         parameters:
           run_github_security_scan: ${{ parameters.run_github_security_scan }}
-          sonar_project_key: FutureIRAS_rsp-rts-service # TODO
+          sonar_project_key: HealthResearchAuthority_rsp-rts-service
           sonar_project_name: rsp-rts-service
           install_aspire: true
           service_defaults_repo: service_defaults
