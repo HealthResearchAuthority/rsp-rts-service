@@ -53,7 +53,6 @@ public class ProbesController : ControllerBase
         {
             _logger.LogAsInformation("Sucesfully called the STARTUP probe.");
             return Ok();
-            ;
         }
         catch (Exception ex)
         {

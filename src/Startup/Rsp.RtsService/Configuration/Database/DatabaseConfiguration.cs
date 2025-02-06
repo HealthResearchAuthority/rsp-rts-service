@@ -19,7 +19,7 @@ public static class DatabaseConfiguration
         services.AddDbContext<RtsDbContext>(options =>
         {
             options.EnableSensitiveDataLogging();
-            options.UseSqlServer(configuration.GetConnectionString("DatabaseConnection"));
+            options.UseSqlServer(configuration.GetConnectionString("RTSDatabaseConnection"));
         });
 
         return services;
