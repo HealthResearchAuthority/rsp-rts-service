@@ -25,6 +25,8 @@ public static class WebApplicationExtensions
             using var scope = app.Services.CreateScope();
             await using var context = scope.ServiceProvider.GetRequiredService<RtsDbContext>();
 
+            logger.LogAsInformation(app.Configuration.GetConnectionString("RTSDatabaseConnection"));
+
             await context.Database.MigrateAsync();
 
             logger.LogAsInformation("Migrations Completed");

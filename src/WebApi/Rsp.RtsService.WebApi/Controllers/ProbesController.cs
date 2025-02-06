@@ -59,5 +59,9 @@ public class ProbesController : ControllerBase
             _logger.LogAsError("SERVER_ERROROR", ex.Message, ex);
             throw;
         }
+        finally
+        {
+            _logger.LogAsInformation("Sucesfully ended the STARTUP probe.");
+        }
     }
 }
