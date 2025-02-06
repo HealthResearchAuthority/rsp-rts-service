@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Entities\Entity.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Enums\" />
   </ItemGroup>
 

@@ -10,6 +10,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ServiceTests\ExecuteCreateCommand.cs" />
+    <Compile Remove="ServiceTests\ExecuteQuery.cs" />
+    <Compile Remove="ServiceTests\ExecuteUpdateCommand.cs" />
+    <Compile Remove="TestData.cs" />
+    <Compile Remove="TestServiceBase{T}.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
       <PackageReference Include="AutoFixture" Version="4.18.1" />
       <PackageReference Include="AutoFixture.Xunit2" Version="4.18.1" />
       <PackageReference Include="Bogus" Version="35.6.1" />
@@ -44,6 +52,10 @@
     <ProjectReference Include="..\..\..\src\Services\Rsp.RtsService.Services\Rsp.RtsService.Services.csproj" />
     <ProjectReference Include="..\..\..\src\Infrastructure\Rsp.RtsService.Infrastructure\Rsp.RtsService.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\WebApi\Rsp.RtsService.WebApi\Rsp.RtsService.WebApi.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="ServiceTests\" />
   </ItemGroup>
 
 </Project>

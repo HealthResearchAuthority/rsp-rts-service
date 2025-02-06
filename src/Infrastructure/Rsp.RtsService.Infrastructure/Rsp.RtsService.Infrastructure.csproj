@@ -11,6 +11,11 @@
     <ProjectReference Include="..\..\Application\Rsp.RtsService.Application\Rsp.RtsService.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+    <Folder Include="SeedData\" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

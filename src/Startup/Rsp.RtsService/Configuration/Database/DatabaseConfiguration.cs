@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Rsp.RtsService.Infrastructure;
 
 namespace Rsp.RtsService.Configuration.Database;
 
@@ -15,7 +16,11 @@ public static class DatabaseConfiguration
     public static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
     {
         // TODO: rename the database connection as needed
-        services.AddDbContext<Infrastructure.DbContext>(options => options.UseSqlServer(configuration.GetConnectionString("DatabaseConnection")));
+        services.AddDbContext<RtsDbContext>(options =>
+        {
+            options.EnableSensitiveDataLogging();
+            options.UseSqlServer(configuration.GetConnectionString("DatabaseConnection"));
+        });
 
         return services;
     }

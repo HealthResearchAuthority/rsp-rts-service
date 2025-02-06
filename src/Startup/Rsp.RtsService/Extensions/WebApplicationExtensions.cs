@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
+using Rsp.Logging.Extensions;
+using Rsp.RtsService.Infrastructure;
 
 namespace Rsp.RtsService.Extensions;
 
@@ -15,9 +17,22 @@ public static class WebApplicationExtensions
     /// <param name="app">The WebApplication instance</param>
     public static async Task MigrateAndSeedDatabaseAsync(this WebApplication app)
     {
-        using var scope = app.Services.CreateScope();
-        await using var context = scope.ServiceProvider.GetRequiredService<Infrastructure.DbContext>();
+        var logger = app.Services.GetRequiredService<ILogger<Program>>();
+        try
+        {
+            logger.LogAsInformation("Performing Migrations");
 
-        await context.Database.MigrateAsync();
+            using var scope = app.Services.CreateScope();
+            await using var context = scope.ServiceProvider.GetRequiredService<RtsDbContext>();
+
+            await context.Database.MigrateAsync();
+
+            logger.LogAsInformation("Migrations Completed");
+        }
+        catch (Exception ex)
+        {
+            logger.LogAsError("ERR_FAILED_MIGRATIONS", "Database Migration failed", ex);
+        }
+       
     }
 }
