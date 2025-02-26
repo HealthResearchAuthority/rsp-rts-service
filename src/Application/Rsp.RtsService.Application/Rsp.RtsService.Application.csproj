@@ -1,14 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<ItemGroup>
-	  <Compile Remove="Contracts\Repositories\IOrganisationRoleRepository.cs" />
-	  <Compile Remove="Contracts\Services\IOrganisationRoleService.cs" />
-	  <Compile Remove="CQRS\Handlers\CommandHandlers\CommandHandler.cs" />
-	  <Compile Remove="CQRS\Handlers\QueryHandlers\QueryHandler.cs" />
-	  <Compile Remove="Specifications\OrganisationRoleSpecification.cs" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="Ardalis.Specification" Version="8.0.0" />
 		<PackageReference Include="MediatR" Version="12.4.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.1" />
@@ -22,8 +14,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Folder Include="CQRS\Commands\" />
 	  <Folder Include="CQRS\Handlers\CommandHandlers\" />
 	  <Folder Include="CQRS\Handlers\QueryHandlers\" />
+	  <Folder Include="CQRS\Queries\" />
 	</ItemGroup>
 
 	<PropertyGroup>
