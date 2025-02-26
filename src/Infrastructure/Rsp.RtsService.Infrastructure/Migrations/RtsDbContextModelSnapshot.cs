@@ -143,11 +143,13 @@ namespace Rsp.RtsService.Infrastructure.Migrations
 
             modelBuilder.Entity("Rsp.RtsService.Domain.Entities.OrganisationRole", b =>
                 {
-                    b.HasOne("Rsp.RtsService.Domain.Entities.Organisation", null)
+                    b.HasOne("Rsp.RtsService.Domain.Entities.Organisation", "Organisation")
                         .WithMany("Roles")
                         .HasForeignKey("OrganisationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Organisation");
                 });
 
             modelBuilder.Entity("Rsp.RtsService.Domain.Entities.Organisation", b =>

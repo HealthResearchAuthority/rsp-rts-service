@@ -24,6 +24,7 @@ public static class ServicesConfiguration
 
         services.AddTransient<IOrganisationService, OrganisationService>();
         services.AddTransient<IOrganisationRepository, OrganisationRepository>();
+        services.AddTransient<IOrganisationRoleRepository, OrganisationRoleRepository>();
         services.AddMediatR(option => option.RegisterServicesFromAssemblyContaining<IApplication>());
 
         return services;

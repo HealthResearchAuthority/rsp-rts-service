@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Rsp.RtsService.Domain.Entities;
 
 namespace Rsp.RtsService.Infrastructure.EntitiesConfiguration;
+
 public class OrganisationRoleConfiguration : IEntityTypeConfiguration<OrganisationRole>
 {
     public void Configure(EntityTypeBuilder<OrganisationRole> builder)
@@ -16,8 +17,9 @@ public class OrganisationRoleConfiguration : IEntityTypeConfiguration<Organisati
             .HasColumnType("varchar(150)");
 
         builder
-            .Property(p => p.OrganisationId)
-            .HasColumnType("varchar(150)");
+           .HasOne(x => x.Organisation)
+           .WithMany(p => p.Roles)
+           .HasForeignKey(x => x.OrganisationId);
 
         builder.HasKey(c => new { c.Id, c.OrganisationId, c.Scoper, c.CreatedDate });
     }
