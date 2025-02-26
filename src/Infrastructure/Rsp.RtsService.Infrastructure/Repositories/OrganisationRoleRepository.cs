@@ -6,28 +6,18 @@ using Rsp.RtsService.Domain.Entities;
 
 namespace Rsp.RtsService.Infrastructure.Repositories;
 
-public class OrganisationRepository(RtsDbContext context) : IOrganisationRepository
+public class OrganisationRoleRepository(RtsDbContext context) : IOrganisationRoleRepository
 {
-    public async Task<Organisation> GetById(ISpecification<Organisation> specification)
-    {
-        var record = await context
-            .Organisation
-            .WithSpecification(specification)
-            .FirstOrDefaultAsync();
-
-        return record;
-    }
-
-    public async Task<IEnumerable<OrganisationSearchResult>> SearchByName(ISpecification<Organisation> specification)
+    public async Task<IEnumerable<OrganisationSearchResult>> SearchByName(ISpecification<OrganisationRole> specification)
     {
         var result = await context
-            .Organisation
+            .OrganisationRole
             .WithSpecification(specification)
             .Take(20)
             .Select(x => new OrganisationSearchResult
             {
                 Id = x.Id,
-                Name = x.Name
+                Name = x.Organisation.Name!
             }).ToListAsync();
 
         return result;

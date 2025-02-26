@@ -1,31 +1,25 @@
-﻿using MediatR;
-using Rsp.RtsService.Application.CQRS.Commands;
-using Rsp.RtsService.Application.CQRS.Queries;
-using Rsp.RtsService.Application.DTOS.Requests;
-using Rsp.RtsService.Application.DTOS.Responses;
-using Rsp.RtsService.Domain.Entities;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Rsp.RtsService.Application.Contracts.Services;
+using Rsp.RtsService.Domain.Entities;
 
 namespace Rsp.RtsService.WebApi.Controllers;
 
-// TODO: Example API Controller using CQRS pattern, update as needed
 [ApiController]
 [Route("[controller]")]
 public class OrganisationsController(IOrganisationService orgService) : ControllerBase
 {
     /// <summary>
-    /// Query organisations by complete or partial name. 
+    /// Query organisations by complete or partial name.
     /// </summary>
     [HttpGet("searchByName")]
-    public async Task<ActionResult<IEnumerable<OrganisationSearchResult>>> SearchByName(string name, string? type = null)
+    public async Task<ActionResult<IEnumerable<OrganisationSearchResult>>> SearchByName(string name, string? type = null, string? role = null)
     {
         try
         {
             if (name.Length < 3)
                 return BadRequest("Name needs to include minimum 3 characters");
 
-            var result = await orgService.SearchByName(name, type);
+            var result = await orgService.SearchByName(name, type, role);
 
             return Ok(result);
         }
@@ -33,7 +27,6 @@ public class OrganisationsController(IOrganisationService orgService) : Controll
         {
             return StatusCode(500, $"An error occurred: {ex.Message}");
         }
-        
     }
 
     /// <summary>
@@ -50,6 +43,5 @@ public class OrganisationsController(IOrganisationService orgService) : Controll
         {
             return StatusCode(500, $"An error occurred: {ex.Message}");
         }
-        
     }
 }

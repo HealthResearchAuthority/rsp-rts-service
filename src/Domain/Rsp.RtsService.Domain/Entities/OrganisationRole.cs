@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Rsp.RtsService.Domain.Entities;
 
-namespace Rsp.RtsService.Domain.Entities;
 public class OrganisationRole
 {
     public string Id { get; set; } = null!;
@@ -17,4 +12,7 @@ public class OrganisationRole
     public DateTime SystemUpdated { get; set; }
     public DateTime Imported { get; set; }
     public DateTime CreatedDate { get; set; }
+
+    // Navigation properties
+    public Organisation Organisation { get; set; } = null!;
 }
