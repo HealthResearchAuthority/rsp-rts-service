@@ -1,8 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<ItemGroup>
+	  <Compile Remove="Contracts\Repositories\IOrganisationRoleRepository.cs" />
+	  <Compile Remove="Contracts\Services\IOrganisationRoleService.cs" />
 	  <Compile Remove="CQRS\Handlers\CommandHandlers\CommandHandler.cs" />
 	  <Compile Remove="CQRS\Handlers\QueryHandlers\QueryHandler.cs" />
+	  <Compile Remove="Specifications\OrganisationRoleSpecification.cs" />
 	</ItemGroup>
 
 	<ItemGroup>

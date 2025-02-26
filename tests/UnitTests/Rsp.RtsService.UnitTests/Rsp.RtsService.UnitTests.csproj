@@ -13,8 +13,7 @@
     <Compile Remove="ServiceTests\ExecuteCreateCommand.cs" />
     <Compile Remove="ServiceTests\ExecuteQuery.cs" />
     <Compile Remove="ServiceTests\ExecuteUpdateCommand.cs" />
-    <Compile Remove="TestData.cs" />
-    <Compile Remove="TestServiceBase{T}.cs" />
+    <Compile Remove="SpecificationsTests\GetSpecificationTests.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -56,6 +55,7 @@
 
   <ItemGroup>
     <Folder Include="ServiceTests\" />
+    <Folder Include="SpecificationsTests\" />
   </ItemGroup>
 
 </Project>

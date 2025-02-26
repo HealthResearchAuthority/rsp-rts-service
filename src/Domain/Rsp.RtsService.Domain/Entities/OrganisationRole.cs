@@ -14,5 +14,5 @@ public class OrganisationRole
     public DateTime CreatedDate { get; set; }
 
     // Navigation properties
-    public Organisation Organisation { get; set; } = null!;
+    //public Organisation Organisation { get; set; } = null!;
 }

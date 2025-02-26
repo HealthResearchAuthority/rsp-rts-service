@@ -16,11 +16,6 @@ public class OrganisationRoleConfiguration : IEntityTypeConfiguration<Organisati
             .Property(p => p.Scoper)
             .HasColumnType("varchar(150)");
 
-        builder
-           .HasOne(x => x.Organisation)
-           .WithMany(p => p.Roles)
-           .HasForeignKey(x => x.OrganisationId);
-
         builder.HasKey(c => new { c.Id, c.OrganisationId, c.Scoper, c.CreatedDate });
     }
 }

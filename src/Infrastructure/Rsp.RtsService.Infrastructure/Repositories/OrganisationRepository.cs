@@ -18,17 +18,12 @@ public class OrganisationRepository(RtsDbContext context) : IOrganisationReposit
         return record;
     }
 
-    public async Task<IEnumerable<OrganisationSearchResult>> SearchByName(ISpecification<Organisation> specification)
+    public async Task<IEnumerable<Organisation>> SearchByName(ISpecification<Organisation> specification)
     {
         var result = await context
             .Organisation
             .WithSpecification(specification)
-            .Take(20)
-            .Select(x => new OrganisationSearchResult
-            {
-                Id = x.Id,
-                Name = x.Name
-            }).ToListAsync();
+            .Take(20).ToListAsync();
 
         return result;
     }

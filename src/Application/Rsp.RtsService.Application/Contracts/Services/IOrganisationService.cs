@@ -8,12 +8,9 @@ namespace Rsp.RtsService.Application.Contracts.Services;
 public interface IOrganisationService
 {
     /// <summary>
-    /// Search organisations by their full or partial name
-    /// </summary>
-    Task<IEnumerable<OrganisationSearchResult>> SearchByName(string name, string? type = null, string? role = null);
-
-    /// <summary>
     /// Get organisation by it's id
     /// </summary>
     Task<Organisation> GetById(string id);
+
+    Task<IEnumerable<Organisation>> SearchByName(string name, string? role = null);
 }
