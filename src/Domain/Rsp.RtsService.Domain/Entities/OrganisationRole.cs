@@ -12,7 +12,4 @@ public class OrganisationRole
     public DateTime SystemUpdated { get; set; }
     public DateTime Imported { get; set; }
     public DateTime CreatedDate { get; set; }
-
-    // Navigation properties
-    //public Organisation Organisation { get; set; } = null!;
 }
