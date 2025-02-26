@@ -5,19 +5,18 @@ using Rsp.RtsService.Domain.Entities;
 
 namespace Rsp.RtsService.Services;
 
-public class OrganisationService(IOrganisationRepository orgRepo, IOrganisationRoleRepository rolesRepo) : IOrganisationService
+public class OrganisationService(IOrganisationRepository repository) : IOrganisationService
 {
     public async Task<Organisation> GetById(string id)
     {
-        var record = await orgRepo.GetById(new OrganisationSpecification(id));
+        var record = await repository.GetById(new OrganisationSpecification(id));
         return record;
     }
 
-    public async Task<IEnumerable<OrganisationSearchResult>> SearchByName(string name, string? type = null, string? role = null)
+    public async Task<IEnumerable<Organisation>> SearchByName(string name, string? role = null)
     {
-        var result = await rolesRepo
-            .SearchByName(new OrganisationRoleSpecification(name, type, role));
+        var records = await repository.SearchByName(new OrganisationSpecification(name, role!));
 
-        return result;
+        return records;
     }
 }

@@ -7,7 +7,7 @@ namespace Rsp.RtsService.UnitTests;
 /// <summary>
 /// Data seeding class
 /// </summary>
-internal static class TestData
+public static class TestData
 {
     /// <summary>
     /// Seeds the data with specified number of records
@@ -15,24 +15,18 @@ internal static class TestData
     /// <param name="context">Database context</param>
     /// <param name="generator">Test data generator</param>
     /// <param name="records">Number of records to seed</param>
-    /// <param name="updateStatus">
-    /// Indicates whether to update the pending status. If true, index 2 and 4 will be updated
-    /// </param>
-    public static async Task<IList<Entity>> SeedData(DbContext context, Generator<Entity> generator, int records, bool updateStatus = false)
+    public static async Task<IList<Organisation>> SeedData(RtsDbContext context, Generator<Organisation> generator, int records)
     {
         // seed data using bogus
         var entities = generator
             .Take(records)
             .ToList();
 
-        if (updateStatus)
-        {
-            // set the to something for testing for a few records
-            // entities[2].property = "somevalue"
-            // entities[4].property = "somevalue"
-        }
+        // setup 2 records with the word life for testing name search
+        entities[1].Name = "life sciences";
+        entities[2].Name = "simple life";
 
-        await context.Entities.AddRangeAsync(entities);
+        await context.Organisation.AddRangeAsync(entities);
 
         await context.SaveChangesAsync();
 

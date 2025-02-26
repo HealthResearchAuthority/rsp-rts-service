@@ -17,4 +17,16 @@ public class OrganisationSpecification : Specification<Organisation>
             .Include(x => x.Roles)
             .Include(x => x.TypeEntity);
     }
+
+    public OrganisationSpecification(string name, string roleId)
+    {
+        var builder = Query.AsNoTracking();
+
+        if (!string.IsNullOrEmpty(roleId))
+        {
+            builder.Where(x => x.Roles.Any(x => x.Id == roleId));
+        }
+
+        builder.Where(x => x.Name != null && x.Name.Contains(name));
+    }
 }
