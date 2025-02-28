@@ -5,7 +5,7 @@ namespace Rsp.RtsService.Application.Contracts.Repositories;
 
 public interface IOrganisationRepository
 {
-    Task<IEnumerable<OrganisationSearchResult>> SearchByName(ISpecification<Organisation> specification);
+    Task<IEnumerable<Organisation>> SearchByName(ISpecification<Organisation> specification);
 
     Task<Organisation> GetById(ISpecification<Organisation> specification);
 }

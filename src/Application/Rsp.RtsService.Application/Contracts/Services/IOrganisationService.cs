@@ -1,6 +1,4 @@
-﻿using Rsp.RtsService.Application.DTOS.Requests;
-using Rsp.RtsService.Application.DTOS.Responses;
-using Rsp.RtsService.Domain.Entities;
+﻿using Rsp.RtsService.Domain.Entities;
 
 namespace Rsp.RtsService.Application.Contracts.Services;
 
@@ -10,12 +8,9 @@ namespace Rsp.RtsService.Application.Contracts.Services;
 public interface IOrganisationService
 {
     /// <summary>
-    /// Search organisations by their full or partial name
-    /// </summary>
-    Task<IEnumerable<OrganisationSearchResult>> SearchByName(string name, string? type = null);
-
-    /// <summary>
     /// Get organisation by it's id
     /// </summary>
-    Task<Organisation> GetById(string id);    
+    Task<Organisation> GetById(string id);
+
+    Task<IEnumerable<Organisation>> SearchByName(string name, int pageSize, string? role = null);
 }

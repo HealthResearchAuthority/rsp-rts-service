@@ -12,11 +12,11 @@ Replace the `###` with the Jira Ticket number below
 
 Put [X] inside the [] to make the box ticked
 
-- [] New feature
-- [] Refactoring
-- [] Bug-fix
-- [] DevOps
-- [] Testing
+- [ ] New feature
+- [ ] Refactoring
+- [ ] Bug-fix
+- [ ] DevOps
+- [ ] Testing
 
 ## Solution
 

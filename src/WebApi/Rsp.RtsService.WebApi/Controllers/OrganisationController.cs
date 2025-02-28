@@ -1,39 +1,34 @@
-﻿using MediatR;
-using Rsp.RtsService.Application.CQRS.Commands;
-using Rsp.RtsService.Application.CQRS.Queries;
-using Rsp.RtsService.Application.DTOS.Requests;
-using Rsp.RtsService.Application.DTOS.Responses;
-using Rsp.RtsService.Domain.Entities;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Rsp.RtsService.Application.Contracts.Services;
+using Rsp.RtsService.Domain.Entities;
 
 namespace Rsp.RtsService.WebApi.Controllers;
 
-// TODO: Example API Controller using CQRS pattern, update as needed
 [ApiController]
 [Route("[controller]")]
 public class OrganisationsController(IOrganisationService orgService) : ControllerBase
 {
     /// <summary>
-    /// Query organisations by complete or partial name. 
+    /// Query organisations by complete or partial name.
     /// </summary>
     [HttpGet("searchByName")]
-    public async Task<ActionResult<IEnumerable<OrganisationSearchResult>>> SearchByName(string name, string? type = null)
+    public async Task<ActionResult<IEnumerable<OrganisationSearchResult>>> SearchByName(string name, int pageSize = 5, string? role = null)
     {
-        try
+        if (name.Length < 3)
         {
-            if (name.Length < 3)
-                return BadRequest("Name needs to include minimum 3 characters");
-
-            var result = await orgService.SearchByName(name, type);
-
-            return Ok(result);
+            return BadRequest("Name needs to include minimum 3 characters");
         }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"An error occurred: {ex.Message}");
-        }
-        
+
+        var organisations = await orgService.SearchByName(name, pageSize, role);
+
+        var result = organisations.Select(x =>
+            new OrganisationSearchResult
+            {
+                Id = x.Id,
+                Name = x.Name!
+            });
+
+        return Ok(result);
     }
 
     /// <summary>
@@ -42,14 +37,8 @@ public class OrganisationsController(IOrganisationService orgService) : Controll
     [HttpGet("getById")]
     public async Task<ActionResult<Organisation>> GetById(string id)
     {
-        try
-        {
-            return Ok(await orgService.GetById(id));
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"An error occurred: {ex.Message}");
-        }
-        
+        var record = await orgService.GetById(id);
+
+        return Ok(record);
     }
 }
