@@ -23,7 +23,7 @@ public class OrganisationRepository(RtsDbContext context) : IOrganisationReposit
         var result = await context
             .Organisation
             .WithSpecification(specification)
-            .Take(20).ToListAsync();
+            .ToListAsync();
 
         return result;
     }

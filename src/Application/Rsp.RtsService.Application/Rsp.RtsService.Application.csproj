@@ -14,10 +14,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="CQRS\Commands\" />
 	  <Folder Include="CQRS\Handlers\CommandHandlers\" />
 	  <Folder Include="CQRS\Handlers\QueryHandlers\" />
-	  <Folder Include="CQRS\Queries\" />
 	</ItemGroup>
 
 	<PropertyGroup>

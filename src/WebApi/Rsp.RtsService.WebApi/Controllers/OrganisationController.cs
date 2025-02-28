@@ -12,28 +12,23 @@ public class OrganisationsController(IOrganisationService orgService) : Controll
     /// Query organisations by complete or partial name.
     /// </summary>
     [HttpGet("searchByName")]
-    public async Task<ActionResult<IEnumerable<OrganisationSearchResult>>> SearchByName(string name, string? role = null)
+    public async Task<ActionResult<IEnumerable<OrganisationSearchResult>>> SearchByName(string name, int pageSize = 5, string? role = null)
     {
-        try
+        if (name.Length < 3)
         {
-            if (name.Length < 3)
-                return BadRequest("Name needs to include minimum 3 characters");
-
-            var organisations = await orgService.SearchByName(name, role);
-
-            var result = organisations.Select(x =>
-                new OrganisationSearchResult
-                {
-                    Id = x.Id,
-                    Name = x.Name!
-                });
-
-            return Ok(result);
+            return BadRequest("Name needs to include minimum 3 characters");
         }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"An error occurred: {ex.Message}");
-        }
+
+        var organisations = await orgService.SearchByName(name, pageSize, role);
+
+        var result = organisations.Select(x =>
+            new OrganisationSearchResult
+            {
+                Id = x.Id,
+                Name = x.Name!
+            });
+
+        return Ok(result);
     }
 
     /// <summary>
@@ -42,13 +37,8 @@ public class OrganisationsController(IOrganisationService orgService) : Controll
     [HttpGet("getById")]
     public async Task<ActionResult<Organisation>> GetById(string id)
     {
-        try
-        {
-            return Ok(await orgService.GetById(id));
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"An error occurred: {ex.Message}");
-        }
+        var record = await orgService.GetById(id);
+
+        return Ok(record);
     }
 }

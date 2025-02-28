@@ -13,9 +13,9 @@ public class OrganisationService(IOrganisationRepository repository) : IOrganisa
         return record;
     }
 
-    public async Task<IEnumerable<Organisation>> SearchByName(string name, string? role = null)
+    public async Task<IEnumerable<Organisation>> SearchByName(string name, int pageSize, string? role = null)
     {
-        var records = await repository.SearchByName(new OrganisationSpecification(name, role!));
+        var records = await repository.SearchByName(new OrganisationSpecification(name, pageSize, role!));
 
         return records;
     }

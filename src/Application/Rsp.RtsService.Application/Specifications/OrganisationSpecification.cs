@@ -18,7 +18,7 @@ public class OrganisationSpecification : Specification<Organisation>
             .Include(x => x.TypeEntity);
     }
 
-    public OrganisationSpecification(string name, string roleId)
+    public OrganisationSpecification(string name, int pageSize, string roleId)
     {
         var builder = Query.AsNoTracking();
 
@@ -27,6 +27,7 @@ public class OrganisationSpecification : Specification<Organisation>
             builder.Where(x => x.Roles.Any(x => x.Id == roleId));
         }
 
-        builder.Where(x => x.Name != null && x.Name.Contains(name));
+        builder.Where(x => x.Name != null && x.Name.Contains(name))
+            .Take(pageSize);
     }
 }
