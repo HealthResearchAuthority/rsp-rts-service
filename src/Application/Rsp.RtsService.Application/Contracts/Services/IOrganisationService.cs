@@ -12,5 +12,5 @@ public interface IOrganisationService
     /// </summary>
     Task<Organisation> GetById(string id);
 
-    Task<IEnumerable<Organisation>> SearchByName(string name, string? role = null);
+    Task<IEnumerable<Organisation>> SearchByName(string name, int pageSize, string? role = null);
 }
