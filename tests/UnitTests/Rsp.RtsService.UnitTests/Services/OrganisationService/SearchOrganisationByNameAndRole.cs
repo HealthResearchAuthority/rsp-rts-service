@@ -41,7 +41,7 @@ public class SearchOrganisationByNameAndRole : TestServiceBase
         var organisationIds = organisations.Select(x => x.Id).ToList();
 
         // actualResults
-        var actualOrganisations = await service.SearchByName(nameToTest, null);
+        var actualOrganisations = await service.SearchByName(nameToTest, 10, null);
         var actualOrganisationIds = actualOrganisations.Select(x => x.Id).ToList();
 
         actualOrganisationIds.ShouldNotBeNull();

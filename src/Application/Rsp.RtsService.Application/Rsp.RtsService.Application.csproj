@@ -1,27 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<ItemGroup>
-		<PackageReference Include="Ardalis.Specification" Version="8.0.0" />
-		<PackageReference Include="MediatR" Version="12.4.1" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.1" />
-		<PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.1" />
-		<PackageReference Include="Rsp.Logging" Version="1.0.10" />
-	</ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Ardalis.Specification" Version="8.0.0" />
+        <PackageReference Include="MediatR" Version="12.4.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.1" />
+        <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.1" />
+        <PackageReference Include="Rsp.Logging" Version="1.0.10" />
+    </ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\..\Domain\Rsp.RtsService.Domain\Rsp.RtsService.Domain.csproj" />
+    <ItemGroup>
+        <ProjectReference Include="..\..\Domain\Rsp.RtsService.Domain\Rsp.RtsService.Domain.csproj" />
 
-	</ItemGroup>
+    </ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="CQRS\Handlers\CommandHandlers\" />
-	  <Folder Include="CQRS\Handlers\QueryHandlers\" />
-	</ItemGroup>
-
-	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-	</PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
 
 </Project>
