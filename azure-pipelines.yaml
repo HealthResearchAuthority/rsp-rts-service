@@ -95,6 +95,7 @@ stages:
           service_defaults_repo: service_defaults
       - template: jobs/deploy.yaml@library
         parameters:
+          depends_on: 'Build'
           install_aspire: true
           service_defaults_repo: service_defaults
 
@@ -105,6 +106,7 @@ stages:
     jobs:
       - template: jobs/deploy.yaml@library
         parameters:
+          depends_on: 'Build'
           install_aspire: true
           service_defaults_repo: service_defaults
       - ${{ if eq(variables.run_e2e_tests, 'true') }}:
