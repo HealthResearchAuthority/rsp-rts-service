@@ -97,9 +97,9 @@ stages:
           install_aspire: true
           service_defaults_repo: service_defaults
      
-     - ${{ if eq(parameters.skip_deployment, false) }}:
+      - ${{ if eq(parameters.skip_deployment, false) }}:
          - template: jobs/deploy.yaml@library
-            parameters:
+           parameters:
               depends_on: 'Build'
               install_aspire: true
               service_defaults_repo: service_defaults
