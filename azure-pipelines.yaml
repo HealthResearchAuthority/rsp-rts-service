@@ -40,6 +40,7 @@ parameters:
     default: 10
   - name: skip_deployment
     displayName: Skip Deployment
+    default: true
 
 variables:
   - group: 'RTS_ContainerApp' # TODO replace value
