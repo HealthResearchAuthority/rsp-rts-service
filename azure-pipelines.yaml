@@ -38,6 +38,8 @@ parameters:
     type: number
     displayName: Automated Tests Run Timeout
     default: 10
+ - name: skip_deployment
+    displayName: Skip Deployment
 
 variables:
   - group: 'RTS_ContainerApp' # TODO replace value
@@ -93,11 +95,13 @@ stages:
           sonar_project_name: rsp-rts-service
           install_aspire: true
           service_defaults_repo: service_defaults
-      - template: jobs/deploy.yaml@library
-        parameters:
-          depends_on: 'Build'
-          install_aspire: true
-          service_defaults_repo: service_defaults
+     
+     - ${{ if eq(parameters.skip_deployment, false) }}:
+         - template: jobs/deploy.yaml@library
+            parameters:
+              depends_on: 'Build'
+              install_aspire: true
+              service_defaults_repo: service_defaults
 
   - stage: systemtest_auto
     variables: 
@@ -106,7 +110,6 @@ stages:
     jobs:
       - template: jobs/deploy.yaml@library
         parameters:
-          depends_on: 'Build'
           install_aspire: true
           service_defaults_repo: service_defaults
       - ${{ if eq(variables.run_e2e_tests, 'true') }}:
