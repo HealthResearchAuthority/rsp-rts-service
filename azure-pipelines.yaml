@@ -38,7 +38,7 @@ parameters:
     type: number
     displayName: Automated Tests Run Timeout
     default: 10
- - name: skip_deployment
+  - name: skip_deployment
     displayName: Skip Deployment
 
 variables:
