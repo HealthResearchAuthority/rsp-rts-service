@@ -16,7 +16,7 @@ public class ExceptionHandlingMiddleware(ILogger<ExceptionHandlingMiddleware> lo
         }
         catch (Exception ex)
         {
-            logger.LogAsError(ErrorStatus.ServerError, "Error processing invocation", ex); // Constant for error here
+            logger.LogAsError(ErrorStatus.ServerError, "Error processing invocation", ex); // Constant for error here.
         }
     }
 }
