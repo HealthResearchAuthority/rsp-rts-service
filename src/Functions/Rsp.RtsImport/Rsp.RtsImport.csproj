@@ -6,10 +6,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+    <ItemGroup>
+        <Content Include="local.settings.json" />
+    </ItemGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <None Include="host.json" />
-    <None Include="local.settings.json" />
     <PackageReference Include="Azure.Identity" Version="1.13.2" />
     <PackageReference Include="EFCore.BulkExtensions" Version="9.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.HeaderPropagation" Version="9.0.2" />
