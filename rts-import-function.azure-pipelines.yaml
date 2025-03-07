@@ -9,7 +9,7 @@ trigger:
     - main
   paths: # File paths to include or exclude for triggering a run.
     include: # List of items to include.
-    - src/Functions/Rsp.RtsImport
+    - src/Functions/Rsp.RtsImport/**
 
 parameters:
   - name: env
