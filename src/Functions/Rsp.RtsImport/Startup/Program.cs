@@ -36,7 +36,7 @@ builder.Services.AddHeaderPropagation(options => options.Headers.Add(RequestHead
 
 if (!builder.Environment.IsDevelopment())
 {
-    // Load configuration from Azure App Configuration
+    // Load configuration from Azure App Configuration.
     builder.Services.AddAzureAppConfiguration(config);
 }
 
