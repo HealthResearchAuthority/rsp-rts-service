@@ -4,7 +4,13 @@ pool:
   vmImage: "Ubuntu-latest"
 
 trigger:
-  - main
+  branches:
+    include:
+    - main
+    - feature/rsp-2781-merge-RTS-import-function-into-RTS-service-solution
+  paths: # File paths to include or exclude for triggering a run.
+    exclude: # List of items to exclude.
+    - src/Functions/**
 
 parameters:
   - name: env

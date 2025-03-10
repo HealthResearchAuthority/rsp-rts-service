@@ -1,0 +1,130 @@
+name: $(Build.DefinitionName)_$(Build.SourceBranchName)_$(date:yyyyMMdd)$(rev:.r)
+# testing
+pool:
+  vmImage: "Ubuntu-latest"
+
+trigger:
+  branches:
+    include:
+    - main
+  paths: # File paths to include or exclude for triggering a run.
+    include: # List of items to include.
+    - src/Functions/Rsp.RtsImport/**
+
+parameters:
+  - name: env
+    displayName: Environment
+    type: string
+    default: dev
+    values:
+      - dev
+      - systemtest_manual
+      - systemtest_auto
+      - uat
+      - pre_prod
+      - production
+  - name: devops_library_branch
+    displayName: DevOps Library Branch
+    type: string
+    default: main
+  - name: run_sonarcloud_analysis
+    displayName: Run Sonar Cloud Analysis
+    type: boolean
+    default: true
+  - name: skip_deployment
+    displayName: Skip Deployment
+    type: boolean
+    default: false
+
+variables:
+  - group: 'RTSImportFunction'
+  - name: vstsFeed
+    value: "0e030eb0-cb72-4f42-b99a-26e6544271c3/0a3e0ad2-23b6-4e8b-ae12-cd6d01fe97e7"
+  - name: solution
+    value: "**/*.sln"
+  - name: project
+    value: "**/Rsp.RtsImport.csproj"
+  - name: buildConfiguration
+    value: "Release"
+  - name: service_connection
+    ${{ if in(parameters.env, 'dev') }}:
+      value: "ARM Dev Connection New"
+    ${{ if in(parameters.env, 'systemtest_auto') }}:
+      value: "ARM Automated Test Connection"  
+    ${{ if in(parameters.env, 'systemtest_manual') }}:
+      value: "ARM Manual Test Connection"
+
+resources:
+  repositories:
+    - repository: library
+      type: github
+      name: 'HealthResearchAuthority/rsp-azure-devops-library'
+      endpoint: AzureDevOpsToGitHubConnection
+      ref: ${{ parameters.devops_library_branch }}
+
+stages:
+  - stage: dev
+    variables: 
+    - group: 'DevelopmentEnvironment'
+    - name: FunctionAppName
+      value: "func-rts-data-sync-dev"
+    condition: eq('${{ parameters.env }}', 'dev') 
+    jobs:
+      - template: jobs/build.yaml@library
+        parameters:
+          sonar_project_key: HealthResearchAuthority_rsp-rts-import-function
+          sonar_project_name: healthresearchauthority
+          run_sonarcloud_analysis: ${{ parameters.run_sonarcloud_analysis }}
+          run_github_security_scan: false
+      - template: jobs/deployFunction.yaml@library
+        parameters:
+          depends_on: 'Build'
+          appSettings: '[{"name":"AppSettings__AzureAppConfiguration__Endpoint","value":"$(AppConfigurationEndpoint)","slotSetting":false},{"name":"AppSettings__AzureAppConfiguration__IdentityClientID","value":"$(AppConfigurationClientID)","slotSetting":false}]'
+
+  - stage: systemtest_auto
+    variables: 
+    - group: 'STAutoEnvironment'
+    condition: eq('${{ parameters.env }}', 'systemtest_auto')
+    jobs:
+    - job:
+      steps:
+      - script: |
+          echo 'env: system test auto'
+
+  - stage: systemtest_manual
+    variables: 
+    - group: 'STManualEnvironment'
+    condition: eq('${{ parameters.env }}', 'systemtest_manual') 
+    jobs:
+    - job:
+      steps:
+      - script: |
+          echo 'env: system test manual'
+
+  - stage: system_integration_test
+    jobs:
+    - job:
+      steps:
+      - script: |
+          echo 'env: system integration test'
+
+  - stage: uat
+    jobs:
+    - job:
+      steps:
+      - script: |
+          echo 'env: uat'
+
+  - stage: pre_prod
+    jobs:
+    - job:
+      steps:
+      - script: |
+          echo 'env: pre prod'
+
+  - stage: production
+    jobs:
+    - job:
+      steps:
+      - script: |
+          echo 'env: production'

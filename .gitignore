@@ -3,6 +3,12 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# Azure Functions localsettings file
+#local.settings.json
+src/Functions/*/Properties/serviceDependencies.local.json
+src/Functions/*/Properties/serviceDependencies.json
+src/Functions/*/local.settings.json
+
 # User-specific files
 *.rsuser
 *.suo
