@@ -1,21 +1,18 @@
 ﻿using Rsp.RtsImport.Application.DTO;
-using Rsp.RtsImport.Application.DTO.Responses;
+using Rsp.RtsImport.Application.DTO.Responses.OrganisationsAndRolesDTOs;
+using Rsp.RtsService.Domain.Entities;
 
 namespace Rsp.RtsImport.Application.Contracts;
 
 public interface IOrganisationService
 {
-    Task<DbOperationResult> UpdateOrganisations(IEnumerable<RtsOrganisation> items, bool onlyActive = false);
+    Task<DbOperationResult> UpdateOrganisations(IEnumerable<Organisation> items, bool onlyActive = false);
 
-    Task<DbOperationResult> UpdateRoles(IEnumerable<RtsRole> items, bool onlyActive = false);
+    Task<DbOperationResult> UpdateRoles(IEnumerable<OrganisationRole> items, bool onlyActive = false);
 
-    Task<DbOperationResult> UpdateTermsets(IEnumerable<RtsTermset> items);
+    Task<IEnumerable<RtsOrganisationAndRole>> GetOrganisationsAndRoles(string _lastUpdated);
 
-    Task<IEnumerable<RtsTermset>> GetTermsets(string modifiedDate);
+    Task<int> FetchPageCountAsync(string _lastUpdated);
 
-    Task<IEnumerable<RtsOrganisation>> GetOrganisations(string modifiedDate);
-
-    Task<IEnumerable<RtsRole>> GetRoles(string modifiedDate);
-
-    Task<int> FetchPageCountAsync(string modifiedDate, string dataType);
+    RtsOrganisationAndRole TransformOrganisationAndRoles(Entry entry);
 }

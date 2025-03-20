@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Net.Http.Headers;
 using Rsp.IrasPortal.Application.ServiceClients;
 
@@ -25,7 +20,7 @@ public class RtsAuthHeadersHandler(IHttpContextAccessor httpContextAccessor, IRt
         if (!request.RequestUri.AbsolutePath.Contains("auth"))
         {
             // get authorisation token for the RTS API
-            var token = await authClient.GetBearerTokenAsync("grant_type=client_credentials&scope=openid%2Bprofile%2Bemail", cancellationToken);
+            var token = await authClient.GetBearerTokenAsync("grant_type=client_credentials&scope=openid%2Bprofile%2Bemail&client_id=aaU7PY4hz_x_RVOyCo09CulPbTca&client_secret=f2tHDyVGv2FBkZmmAXbryfL7hr0a", cancellationToken);
 
             if (token?.StatusCode == System.Net.HttpStatusCode.OK && !string.IsNullOrEmpty(token?.Content?.AccessToken))
             {

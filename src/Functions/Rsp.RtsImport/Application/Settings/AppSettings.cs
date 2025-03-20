@@ -11,5 +11,7 @@ public class AppSettings
     public string? RtsRolesDataUrl { get; set; } = null!;
     public string? RtsTermsetDataUrl { get; set; } = null!;
     public Uri RtsApiBaseUrl { get; set; } = null!;
+
+    public Uri OATRtsAuthApiBaseUrl { get; set; } = null!;
     public AzureAppConfiguration AzureAppConfiguration { get; set; } = null!;
 }

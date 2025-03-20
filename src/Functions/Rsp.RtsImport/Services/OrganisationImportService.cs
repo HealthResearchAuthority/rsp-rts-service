@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Rsp.Logging.Extensions;
 using Rsp.RtsImport.Application.Contracts;
+using Rsp.RtsService.Domain.Entities;
 
 namespace Rsp.RtsImport.Services;
 
@@ -16,65 +17,37 @@ public class OrganisationImportService : IOrganisationImportService
         _organisationService = organisationService;
     }
 
-    public async Task<int> ImportOrganisations(string dateModified, bool onlyActive = false)
+    public async Task<int> ImportOrganisationsAndRoles(string _lastUpdated, bool onlyActive = false)
     {
         _logger.LogAsInformation("Fetching organisation items from API.");
-        var resultsOrg = await _organisationService.GetOrganisations(dateModified);
-        _logger.LogAsInformation(resultsOrg.Count().ToString(), "Number of organisation items fetched");
-
-        if (resultsOrg != null && resultsOrg.Any())
+        var resultsOrgAndRoles = await _organisationService.GetOrganisationsAndRoles(_lastUpdated);
+        _logger.LogAsInformation(resultsOrgAndRoles.Count().ToString(), "Number of organisation items fetched");
+        var test = resultsOrgAndRoles.ToList();
+        if (resultsOrgAndRoles != null && resultsOrgAndRoles.Any())
         {
-            _logger.LogAsInformation(resultsOrg.Count().ToString(), "Number of organisation items saving to database");
+            _logger.LogAsInformation(resultsOrgAndRoles.Count().ToString(), "Number of organisation items saving to database");
 
             int updatesCounter = 0;
-            var save = await _organisationService.UpdateOrganisations(resultsOrg, onlyActive);
-            updatesCounter = save.RecordsUpdated;
-            var finalMessage = $"Sucesfully finished saving organisation items to the database. Updated: {updatesCounter} organisation items";
-            _logger.LogAsInformation(finalMessage);
-            return updatesCounter;
-        }
-        return 0;
-    }
-
-    public async Task<int> ImportTermsets(string dateModified)
-    {
-        _logger.LogAsInformation("Fetching termset items from API.");
-        var resultsOrg = await _organisationService.GetTermsets(dateModified);
-        _logger.LogAsInformation(resultsOrg.Count().ToString(), "Number of termset items fetched");
-
-        if (resultsOrg != null && resultsOrg.Any())
-        {
-            _logger.LogAsInformation(resultsOrg.Count().ToString(), "Number of termset items saving to the database.");
-
-            int updatesCounter = 0;
-            var save = await _organisationService.UpdateTermsets(resultsOrg);
-            updatesCounter = save.RecordsUpdated;
-
-            var finalMessage = $"Sucesfully finished saving termset items to the database. Updated: {updatesCounter} termset items";
-            _logger.LogAsInformation(finalMessage);
-            return updatesCounter;
-        }
-        return 0;
-    }
-
-    public async Task<int> ImportRoles(string dateModified, bool onlyActive = false)
-    {
-        _logger.LogAsInformation("Fetching role items from API.");
-        var resultsOrg = await _organisationService.GetRoles(dateModified);
-        _logger.LogAsInformation(resultsOrg.Count().ToString(), "Number of role items fetched");
-
-        if (resultsOrg != null && resultsOrg.Any())
-        {
+            var resultsOrg = resultsOrgAndRoles.Select(x => x.rtsOrganisation);
+            var saveOrg = await _organisationService.UpdateOrganisations(resultsOrg, onlyActive);
+            updatesCounter += saveOrg.RecordsUpdated;
+            var finalMessageOrg = $"Successfully finished saving organisation items to the database. Updated: {saveOrg.RecordsUpdated} organisation items";
+            _logger.LogAsInformation(finalMessageOrg);
+            var resultsRoles = resultsOrgAndRoles.Select(x => x.rtsRole);
+            IEnumerable<OrganisationRole> resultsRolesflattened = resultsRoles.SelectMany(innerList => innerList);
             _logger.LogAsInformation(resultsOrg.Count().ToString(), "Number of role items saving to the database");
 
-            int updatesCounter = 0;
-            var save = await _organisationService.UpdateRoles(resultsOrg, onlyActive);
-            updatesCounter = save.RecordsUpdated;
+            var saveRole = await _organisationService.UpdateRoles(resultsRolesflattened, onlyActive);
+            updatesCounter += saveRole.RecordsUpdated;
 
-            var finalMessage = $"Sucesfully finished saving role items to the database. Updated: {updatesCounter} role items";
-            _logger.LogAsInformation(finalMessage);
+            var finalMessageRole = $"Successfully finished saving role items to the database. Updated: {saveRole.RecordsUpdated} role items";
+            _logger.LogAsInformation(finalMessageRole);
+
+            var finalMessage = $"Successfully finished saving Organisation and Role items to the database. Updated: {updatesCounter} role items";
+            _logger.LogAsInformation(finalMessageRole);
             return updatesCounter;
         }
+
         return 0;
     }
 }

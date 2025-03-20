@@ -13,7 +13,6 @@ public static class ServicesConfiguration
         services.AddTransient<IOrganisationImportService, OrganisationImportService>();
 
         services.AddTransient<RtsAuthHeadersHandler>();
-        services.AddTransient<RtsPreAuthHeadersHandler>();
 
         return services;
     }

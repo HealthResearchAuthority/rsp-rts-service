@@ -30,7 +30,7 @@ public static class DataModelConverters
             LastUpdated = input.ModifiedDate,
             StartDate = input.EffectiveStartDate,
             SystemUpdated = DateTime.Now,
-            Scoper = !string.IsNullOrEmpty(input.ParentIdentifier) ? input.ParentIdentifier : string.Empty,
+            Scoper = 1,//!string.IsNullOrEmpty(input.ParentIdentifier) ? input.ParentIdentifier : string.Empty,
             CreatedDate = input.CreatedDate.GetValueOrDefault(),
             OrganisationId = input.OrgIdentifier,
             Status = input.Status
@@ -47,7 +47,7 @@ public static class DataModelConverters
             Imported = DateTime.Now,
             LastUpdated = input.ModifiedDate,
             SystemUpdated = DateTime.Now,
-            Status = input.Status,
+            Status = true,//input.Status,
             Address = input.Address,
             CountryIdentifier = input.UKCountryIdentifier,
             CountryName = input.UKCountryName,

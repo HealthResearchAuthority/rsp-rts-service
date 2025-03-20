@@ -5,7 +5,7 @@ namespace Rsp.IrasPortal.Application.ServiceClients;
 
 public interface IRtsAuthorisationServiceClient
 {
-    [Post("/api/auth/token")]
+    [Post("/oauth2/token")]
     [Headers("Content-Type: application/x-www-form-urlencoded")]
     public Task<ApiResponse<RtsAuthResponseBody?>> GetBearerTokenAsync([Body] string body, CancellationToken cancellationToken);
 }

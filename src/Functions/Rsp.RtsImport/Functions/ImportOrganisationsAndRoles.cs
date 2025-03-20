@@ -8,19 +8,19 @@ using Rsp.RtsImport.Application.Contracts;
 
 namespace Rsp.RtsImport.Functions;
 
-public class ImportOrganisations
+public class ImportOrganisationsAndRoles
 {
-    private readonly ILogger<ImportOrganisations> _logger;
+    private readonly ILogger<ImportOrganisationsAndRoles> _logger;
     private readonly IOrganisationImportService _importService;
 
-    public ImportOrganisations(ILogger<ImportOrganisations> logger,
+    public ImportOrganisationsAndRoles(ILogger<ImportOrganisationsAndRoles> logger,
         IOrganisationImportService importService)
     {
         _logger = logger;
         _importService = importService;
     }
 
-    [Function("ImportOrganisations")]
+    [Function("ImportOrganisationAndRoles")]
     public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequest req)
     {
         try
@@ -29,35 +29,35 @@ public class ImportOrganisations
             bool importAllRecords = !string.IsNullOrEmpty(req.Query["importAllRecords"]) && bool.Parse(req.Query["importAllRecords"]);
 
             // last modified date should be yesterday's date. This is to ensure that only data changes since yesterday's pull are retrieved
-            var dateModified = DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd");
+            var _lastUpdated = DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd");
 
-            // check if there is a the optional dateModified parameter is sent in the request. This overrides yesterday's date.
-            var dateModifiedParameter = req.Query["dateModified"];
-            if (!string.IsNullOrEmpty(dateModifiedParameter))
+            // check if there is a the optional _lastUpdated parameter is sent in the request. This overrides yesterday's date.
+            var _lastUpdatedParameter = req.Query["_lastUpdated"];
+            if (!string.IsNullOrEmpty(_lastUpdatedParameter))
             {
                 // check the parameter lastModified date is in the expected format
-                var dateInCorrectFormat = DateTime.TryParseExact(req.Query["dateModified"], "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out DateTime date);
+                var dateInCorrectFormat = DateTime.TryParseExact(req.Query["_lastUpdated"], "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out DateTime date);
                 if (dateInCorrectFormat)
                 {
                     // use the parameter date instead of the default
-                    dateModified = dateModifiedParameter;
+                    _lastUpdated = _lastUpdatedParameter;
                 }
                 else
                 {
-                    _logger.LogAsError(ErrorStatus.BadRequest, "dateModified is not provided in the correct format of: 'yyyy-MM-dd'");
-                    return new BadRequestObjectResult("dateModified is not provided in the correct format of: 'yyyy-MM-dd'");
+                    _logger.LogAsError(ErrorStatus.BadRequest, "_lastUpdated is not provided in the correct format of: 'yyyy-MM-dd'");
+                    return new BadRequestObjectResult("_lastUpdated is not provided in the correct format of: 'yyyy-MM-dd'");
                 }
             }
 
             // if importAllRecords parameter is a true then invalidate import date to get all records from API
             if (importAllRecords)
             {
-                dateModified = null;
+                _lastUpdated = null;
             }
 
             _logger.LogAsInformation("Organisations import started");
 
-            var importOrganisations = await _importService.ImportOrganisations(dateModified!, onlyActive);
+            var importOrganisations = await _importService.ImportOrganisationsAndRoles(_lastUpdated!, onlyActive);
 
             return new OkObjectResult($"Import complete Updated: {importOrganisations}");
         }

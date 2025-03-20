@@ -27,19 +27,13 @@ public class ImportAllData
         try
         {
             // get yesterday's date so we only get the delta between today and yesterday
-            var dateModified = DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd");
+            var _lastUpdated = DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd");
 
             // order of data retrieval is important due to foreign key constrains
             // Step 1: Import organisation termsets
-            var updatedTermsets = await _importService.ImportTermsets(dateModified);
+            var updatedOrganisationAndRoles = await _importService.ImportOrganisationsAndRoles(_lastUpdated);
 
-            // Step 2: Import organisations
-            var updatedOrganisations = await _importService.ImportOrganisations(dateModified);
-
-            // Step 3: Import organisation roles
-            var updatedRoles = await _importService.ImportRoles(dateModified);
-
-            return new OkObjectResult($"Sucesfully ran the update process. Total records updated: {updatedOrganisations + updatedRoles + updatedTermsets}.");
+            return new OkObjectResult($"Sucesfully ran the update process. Total records updated: {updatedOrganisationAndRoles}.");
         }
         catch (Exception ex)
         {

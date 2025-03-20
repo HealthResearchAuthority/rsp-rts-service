@@ -24,8 +24,7 @@ public static class HttpClientsConfiguration
 
         services
            .AddRestClient<IRtsAuthorisationServiceClient>()
-           .ConfigureHttpClient(client => client.BaseAddress = appSettings.RtsApiBaseUrl)
-           .AddHttpMessageHandler<RtsPreAuthHeadersHandler>();
+           .ConfigureHttpClient(client => client.BaseAddress = appSettings.OATRtsAuthApiBaseUrl);
 
         return services;
     }

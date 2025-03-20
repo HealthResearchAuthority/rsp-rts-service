@@ -2,5 +2,6 @@
 
 public static class RtsRecordStatusOptions
 {
-    public const string Active = "Active";
+    public const bool ActiveOrg = true;
+    public const string ActiveRole = "Active";
 }
