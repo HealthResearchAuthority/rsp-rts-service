@@ -1,8 +1,10 @@
-﻿using System.Data;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Text.Json;
 using EFCore.BulkExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Refit;
 using Rsp.Logging.Extensions;
 using Rsp.RtsImport.Application.Constants;
@@ -94,46 +96,68 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
 
     public async Task<IEnumerable<RtsOrganisationAndRole>> GetOrganisationsAndRoles(string _lastUpdated)
     {
-        //Step 1: initiate semaphore to manage concurency
-        var semaphore = new SemaphoreSlim(3);
+        var stopwatch = Stopwatch.StartNew(); // Start timer
 
-        // initiate an empty array to hold results
-        var result = new List<RtsOrganisationAndRole>();
+        // Log the elapsed time
+        Console.WriteLine(
+            $"Data fetching started");
 
-        // Step 2: Fetch data using the access token
-        // setup pagination
-        int _count = 500;
+        var maxConcurrency = 5; // Tune this based on system capacity and API limits
+        var _count = 500;
 
-        // get the number of pages needed for the request
+        var semaphore = new SemaphoreSlim(maxConcurrency);
+        var result = new ConcurrentBag<RtsOrganisationAndRole>();
+
+        // Step 1: Get the total number of records and calculate total pages
         var totalRecords = await FetchPageCountAsync(_lastUpdated);
-        var totalPages = totalRecords / _count + 1;
+        var totalPages = (int)Math.Ceiling(totalRecords / (double)_count);
 
-        var tasks = new List<Task<IEnumerable<RtsOrganisationAndRole>>>();
+        var tasks = new List<Task>();
 
-        for (int interval = 1; interval <= totalPages; interval++)
+        // Step 2: Create and queue tasks with offset logic
+        for (var page = 0; page < totalPages; page++)
         {
-            await semaphore.WaitAsync();
-            var _offset = interval * _count;
-            // collect all fetching tasks
-            tasks.Add(FetchOrganisationAndRolesAsync(_lastUpdated, _offset, _count, semaphore));
+            var offset = page * _count;
+
+            tasks.Add(Task.Run(async () =>
+            {
+                await semaphore.WaitAsync();
+                try
+                {
+                    var data = await FetchOrganisationAndRolesAsync(_lastUpdated, offset, _count);
+                    foreach (var item in data)
+                    {
+                        result.Add(item);
+                    }
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            }));
         }
-        // execute all fetching tasks in paralel
-        var allData = await Task.WhenAll(tasks);
 
-        foreach (var task in allData)
-        {
-            result.AddRange(task);
-        }
+        // Step 3: Wait for all tasks to complete
+        await Task.WhenAll(tasks);
 
-        // cleanup duplicates if any
-        var uniqueResultList = result.DistinctBy(x => x.rtsOrganisation.Id); // TODO: Need to make sure it distinct for both
+        stopwatch.Stop(); // Stop timer before deduplication
 
-        return uniqueResultList;
+        // Log the elapsed time
+        Console.WriteLine(
+            $"Data fetching completed in: {stopwatch.Elapsed.Hours:D2}h:{stopwatch.Elapsed.Minutes:D2}m:{stopwatch.Elapsed.Seconds:D2}s");
+
+        Console.WriteLine($"Total records fetched: {result.Count}");
+
+        // Step 4: Remove duplicates based on both Organisation and Role IDs
+        return result
+            //.DistinctBy(x => new { x.rtsOrganisation.Id, x.rtsRole }) // Uncomment and fix if needed
+            .ToList();
     }
 
     public async Task<int> FetchPageCountAsync(string _lastUpdated)
     {
-        ApiResponse<RtsOrganisationsAndRolesResponse>? result = await _rtsClient.GetOrganisationsAndRoles(_lastUpdated, 1, 1);
+        ApiResponse<RtsOrganisationsAndRolesResponse>? result =
+            await rtsClient.GetOrganisationsAndRoles(_lastUpdated, 1, 1);
 
         return result?.Content?.total ?? -1;
     }
@@ -170,7 +194,7 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
             rtsOrganisationRole.rtsRole = [];
             var extensions = entry.resource.extension;
 
-            for (int i = 0; i < extensions.Count; i++) // Starting from index 2 (third element)
+            for (var i = 0; i < extensions.Count; i++) // Starting from index 2 (third element)
             {
                 var extension = ConvertJsonElementToDynamic(extensions[i]);
 
@@ -179,10 +203,10 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
                     var roleExtensions = extension.extension;
                     DateTime? startdate = null;
                     DateTime? enddate = null;
-                    string status = "Active";
-                    string identifier = "";
-                    OrganisationRole rtsRole = new OrganisationRole();
-                    int scoper = -1;
+                    var status = "Active";
+                    var identifier = "";
+                    var rtsRole = new OrganisationRole();
+                    var scoper = -1;
                     for (var j = 0; j < roleExtensions.Count; j++)
                     {
                         var roleExtension = roleExtensions[j];
@@ -190,18 +214,22 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
                         {
                             startdate = roleExtension.valueDate;
                         }
+
                         if (roleExtension.url == "status")
                         {
                             status = roleExtension.valueString;
                         }
+
                         if (roleExtension.url == "identifier")
                         {
                             identifier = roleExtension.valueString;
                         }
+
                         if (roleExtension.url == "endDate")
                         {
                             enddate = roleExtension.valueDate;
                         }
+
                         if (roleExtension.url == "scoper")
                         {
                             // Split the URL path by '/'
@@ -216,7 +244,7 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
                         {
                             Id = identifier,
                             OrganisationId = entry.resource.identifier[0].value,
-                            EndDate = enddate,// Make Nullabale in Database
+                            EndDate = enddate, // Make Nullabale in Database
                             Imported = DateTime.Now,
                             //LastUpdated = input.ModifiedDate, // Get rid of in database.
                             StartDate = startdate,
@@ -241,20 +269,24 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
         }
     }
 
-    private async Task<IEnumerable<RtsOrganisationAndRole>> FetchOrganisationAndRolesAsync(string _lastUpdated, int _offset, int _count, SemaphoreSlim semaphore)
+    private async Task<IEnumerable<RtsOrganisationAndRole>> FetchOrganisationAndRolesAsync(string _lastUpdated,
+        int _offset, int _count)
     {
         try
         {
-            var result = await _rtsClient.GetOrganisationsAndRoles(_lastUpdated, _offset, _count);
-            var allData = result?.Content?.entry
-                                .Select(x => TransformOrganisationAndRoles(x))
-                                .ToList();  // Ensure the selection is evaluated to a list immediately
+            var result = await rtsClient.GetOrganisationsAndRoles(_lastUpdated, _offset, _count);
 
-            return allData ?? Enumerable.Empty<RtsOrganisationAndRole>();  // Return an empty collection if the result is null
+            var allData = result?.Content?.entry
+                ?.Select(x => TransformOrganisationAndRoles(x))
+                .ToList();
+
+            return allData ?? Enumerable.Empty<RtsOrganisationAndRole>();
         }
-        finally
+        catch (Exception ex)
         {
-            semaphore.Release();
+            // Optional: Log and rethrow or return empty on failure
+            Console.WriteLine($"Error fetching data at offset {_offset}: {ex.Message}");
+            return Enumerable.Empty<RtsOrganisationAndRole>();
         }
     }
 }
