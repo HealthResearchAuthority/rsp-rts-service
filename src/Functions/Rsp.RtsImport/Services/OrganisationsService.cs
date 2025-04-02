@@ -96,68 +96,43 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
 
     public async Task<IEnumerable<RtsOrganisationAndRole>> GetOrganisationsAndRoles(string _lastUpdated)
     {
-        var stopwatch = Stopwatch.StartNew(); // Start timer
+        var stopwatch = Stopwatch.StartNew();
+        int pageSize = 500;
+        int maxConcurrency = 10;
 
-        // Log the elapsed time
-        Console.WriteLine(
-            $"Data fetching started");
-
-        var maxConcurrency = 5; // Tune this based on system capacity and API limits
-        var _count = 500;
-
-        var semaphore = new SemaphoreSlim(maxConcurrency);
         var result = new ConcurrentBag<RtsOrganisationAndRole>();
-
-        // Step 1: Get the total number of records and calculate total pages
         var totalRecords = await FetchPageCountAsync(_lastUpdated);
-        var totalPages = (int)Math.Ceiling(totalRecords / (double)_count);
+        var totalPages = (int)Math.Ceiling(totalRecords / (double)pageSize);
 
-        var tasks = new List<Task>();
+        var pageIndices = Enumerable.Range(0, totalPages);
 
-        // Step 2: Create and queue tasks with offset logic
-        for (var page = 0; page < totalPages; page++)
+        await Parallel.ForEachAsync(pageIndices, new ParallelOptions { MaxDegreeOfParallelism = maxConcurrency }, async (page, _) =>
         {
-            var offset = page * _count;
-
-            tasks.Add(Task.Run(async () =>
+            int offset = page * pageSize;
+            var data = await FetchOrganisationAndRolesAsync(_lastUpdated, offset, pageSize);
+            foreach (var item in data)
             {
-                await semaphore.WaitAsync();
-                try
-                {
-                    var data = await FetchOrganisationAndRolesAsync(_lastUpdated, offset, _count);
-                    foreach (var item in data)
-                    {
-                        result.Add(item);
-                    }
-                }
-                finally
-                {
-                    semaphore.Release();
-                }
-            }));
-        }
+                result.Add(item);
+            }
+        });
 
-        // Step 3: Wait for all tasks to complete
-        await Task.WhenAll(tasks);
+        stopwatch.Stop();
 
-        stopwatch.Stop(); // Stop timer before deduplication
+        //var finalResult = result
+        //    .DistinctBy(x => new { x.rtsOrganisation.Id, x.rtsRole })
+        //    .ToList();
 
-        // Log the elapsed time
-        Console.WriteLine(
-            $"Data fetching completed in: {stopwatch.Elapsed.Hours:D2}h:{stopwatch.Elapsed.Minutes:D2}m:{stopwatch.Elapsed.Seconds:D2}s");
-
+        Console.WriteLine($"Data fetching completed in: {stopwatch.Elapsed.Hours:D2}h:{stopwatch.Elapsed.Minutes:D2}m:{stopwatch.Elapsed.Seconds:D2}s");
         Console.WriteLine($"Total records fetched: {result.Count}");
 
-        // Step 4: Remove duplicates based on both Organisation and Role IDs
-        return result
-            //.DistinctBy(x => new { x.rtsOrganisation.Id, x.rtsRole }) // Uncomment and fix if needed
-            .ToList();
+        return result;
     }
+
 
     public async Task<int> FetchPageCountAsync(string _lastUpdated)
     {
         ApiResponse<RtsOrganisationsAndRolesResponse>? result =
-            await rtsClient.GetOrganisationsAndRoles(_lastUpdated, 1, 1);
+            await rtsClient.GetOrganisationsAndRoles(_lastUpdated, 0, 1);
 
         return result?.Content?.total ?? -1;
     }
