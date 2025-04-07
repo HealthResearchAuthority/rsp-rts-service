@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace Rsp.RtsImport.Application.DTO.Responses;
+﻿namespace Rsp.RtsImport.Application.DTO.Responses;
 
 public class RtsOrganisation
 {

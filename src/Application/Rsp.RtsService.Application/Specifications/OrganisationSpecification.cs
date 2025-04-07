@@ -14,8 +14,8 @@ public class OrganisationSpecification : Specification<Organisation>
         var builder = Query
             .AsNoTracking()
             .Where(entity => entity.Id == id)
-            .Include(x => x.Roles)
-            .Include(x => x.TypeEntity);
+            .Include(x => x.Roles);
+        //.Include(x => x.TypeEntity);
     }
 
     public OrganisationSpecification(string name, int pageSize, string roleId)

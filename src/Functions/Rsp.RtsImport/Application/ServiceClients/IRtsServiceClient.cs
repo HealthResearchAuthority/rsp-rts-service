@@ -1,7 +1,4 @@
-﻿using Refit;
-using Rsp.RtsImport.Application.DTO.Responses;
-
-namespace Rsp.RtsImport.Application.ServiceClients;
+﻿namespace Rsp.RtsImport.Application.ServiceClients;
 
 public interface IRtsServiceClient
 {

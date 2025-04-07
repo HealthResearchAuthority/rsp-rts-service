@@ -1,10 +1,5 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Logging;
-using Rsp.Logging.Extensions;
-using Rsp.RtsImport.Application.Constants;
-using Rsp.RtsImport.Application.Contracts;
 
 namespace Rsp.RtsImport.Functions;
 
@@ -23,10 +18,15 @@ public class ImportOrganisationsAndRoles
     [Function("ImportOrganisationAndRoles")]
     public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequest req)
     {
+        var stopwatch = Stopwatch.StartNew();
+
         try
         {
-            bool onlyActive = !string.IsNullOrEmpty(req.Query["onlyActive"]) && bool.Parse(req.Query["onlyActive"]); // if true then only active records will be imported
-            bool importAllRecords = !string.IsNullOrEmpty(req.Query["importAllRecords"]) && bool.Parse(req.Query["importAllRecords"]);
+            bool onlyActive =
+                !string.IsNullOrEmpty(req.Query["onlyActive"]) &&
+                bool.Parse(req.Query["onlyActive"]); // if true then only active records will be imported
+            bool importAllRecords = !string.IsNullOrEmpty(req.Query["importAllRecords"]) &&
+                                    bool.Parse(req.Query["importAllRecords"]);
 
             // last modified date should be yesterday's date. This is to ensure that only data changes since yesterday's pull are retrieved
             var _lastUpdated = DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd");
@@ -36,7 +36,8 @@ public class ImportOrganisationsAndRoles
             if (!string.IsNullOrEmpty(_lastUpdatedParameter))
             {
                 // check the parameter lastModified date is in the expected format
-                var dateInCorrectFormat = DateTime.TryParseExact(req.Query["_lastUpdated"], "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out DateTime date);
+                var dateInCorrectFormat = DateTime.TryParseExact(req.Query["_lastUpdated"], "yyyy-MM-dd", null,
+                    System.Globalization.DateTimeStyles.None, out DateTime date);
                 if (dateInCorrectFormat)
                 {
                     // use the parameter date instead of the default
@@ -44,8 +45,10 @@ public class ImportOrganisationsAndRoles
                 }
                 else
                 {
-                    _logger.LogAsError(ErrorStatus.BadRequest, "_lastUpdated is not provided in the correct format of: 'yyyy-MM-dd'");
-                    return new BadRequestObjectResult("_lastUpdated is not provided in the correct format of: 'yyyy-MM-dd'");
+                    _logger.LogAsError(ErrorStatus.BadRequest,
+                        "_lastUpdated is not provided in the correct format of: 'yyyy-MM-dd'");
+                    return new BadRequestObjectResult(
+                        "_lastUpdated is not provided in the correct format of: 'yyyy-MM-dd'");
                 }
             }
 
@@ -72,6 +75,12 @@ public class ImportOrganisationsAndRoles
             {
                 StatusCode = 500
             };
+        }
+        finally
+        {
+            stopwatch.Stop();
+            Console.WriteLine(
+                $"Data imported completed in: {stopwatch.Elapsed.Hours:D2}h:{stopwatch.Elapsed.Minutes:D2}m:{stopwatch.Elapsed.Seconds:D2}s");
         }
     }
 }

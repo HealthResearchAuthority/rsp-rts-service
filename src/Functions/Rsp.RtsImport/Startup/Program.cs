@@ -1,13 +1,9 @@
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.FeatureManagement;
-using Rsp.Logging.Extensions;
 using Rsp.Logging.Interceptors;
-using Rsp.RtsImport.Application.Constants;
-using Rsp.RtsImport.Application.Settings;
 using Rsp.RtsImport.Startup.Configuration;
 using Rsp.RtsService.Infrastructure;
 

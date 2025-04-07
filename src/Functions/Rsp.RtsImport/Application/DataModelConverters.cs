@@ -1,7 +1,4 @@
-﻿using Rsp.RtsImport.Application.DTO.Responses;
-using Rsp.RtsService.Domain.Entities;
-
-namespace Rsp.RtsImport.Application;
+﻿namespace Rsp.RtsImport.Application;
 
 public static class DataModelConverters
 {

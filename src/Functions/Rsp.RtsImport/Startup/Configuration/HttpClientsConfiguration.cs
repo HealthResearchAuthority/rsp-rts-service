@@ -1,9 +1,6 @@
 ﻿using System.Text.Json;
-using Microsoft.Extensions.DependencyInjection;
-using Refit;
 using Rsp.IrasPortal.Application.ServiceClients;
 using Rsp.RtsImport.Application.ServiceClients;
-using Rsp.RtsImport.Application.Settings;
 using Rsp.RtsImport.Infrastructure.HttpMessageHandlers;
 
 namespace Rsp.RtsImport.Startup.Configuration;

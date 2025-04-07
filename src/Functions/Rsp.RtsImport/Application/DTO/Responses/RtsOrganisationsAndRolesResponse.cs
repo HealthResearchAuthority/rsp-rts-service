@@ -1,14 +1,18 @@
-﻿using Rsp.RtsImport.Application.DTO.Responses.OrganisationsAndRolesDTOs;
-
-namespace Rsp.RtsImport.Application.DTO.Responses;
+﻿namespace Rsp.RtsImport.Application.DTO.Responses;
 
 public class RtsOrganisationsAndRolesResponse
 {
-    public string resourceType { get; set; }
-    public string id { get; set; }
-    public Meta meta { get; set; }
-    public string type { get; set; }
-    public int total { get; set; }
-    public List<Link> link { get; set; }
-    public IEnumerable<Entry> entry { get; set; }
+    [JsonPropertyName("resourceType")] public string ResourceType { get; set; }
+
+    [JsonPropertyName("id")] public string Id { get; set; }
+
+    [JsonPropertyName("meta")] public RtsFhirMeta Meta { get; set; }
+
+    [JsonPropertyName("type")] public string Type { get; set; }
+
+    [JsonPropertyName("total")] public int Total { get; set; }
+
+    [JsonPropertyName("link")] public List<RtsFhirLink> Link { get; set; }
+
+    [JsonPropertyName("entry")] public IEnumerable<RtsFhirEntry> Entry { get; set; }
 }

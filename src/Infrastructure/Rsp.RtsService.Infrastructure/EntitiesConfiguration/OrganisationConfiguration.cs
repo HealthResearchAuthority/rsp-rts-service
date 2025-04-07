@@ -23,9 +23,9 @@ public class OrganisationConfiguration : IEntityTypeConfiguration<Organisation>
             .WithOne()
             .HasForeignKey(x => x.OrganisationId);
 
-        builder
-            .HasOne(x => x.TypeEntity)
-            .WithMany()
-            .HasForeignKey(x => x.Type);
+        //builder
+        //    .HasOne(x => x.TypeEntity)
+        //    .WithMany()
+        //    .HasForeignKey(x => x.Type);
     }
 }

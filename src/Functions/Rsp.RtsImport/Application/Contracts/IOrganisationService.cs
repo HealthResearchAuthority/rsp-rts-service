@@ -1,8 +1,4 @@
-﻿using Rsp.RtsImport.Application.DTO;
-using Rsp.RtsImport.Application.DTO.Responses.OrganisationsAndRolesDTOs;
-using Rsp.RtsService.Domain.Entities;
-
-namespace Rsp.RtsImport.Application.Contracts;
+﻿namespace Rsp.RtsImport.Application.Contracts;
 
 public interface IOrganisationService
 {
@@ -14,5 +10,5 @@ public interface IOrganisationService
 
     Task<int> FetchPageCountAsync(string _lastUpdated);
 
-    RtsOrganisationAndRole TransformOrganisationAndRoles(Entry entry);
+    RtsOrganisationAndRole TransformOrganisationAndRoles(RtsFhirEntry entry);
 }

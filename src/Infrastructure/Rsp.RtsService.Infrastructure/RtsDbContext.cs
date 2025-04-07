@@ -12,7 +12,7 @@ public class RtsDbContext(DbContextOptions<RtsDbContext> options) : DbContext(op
 {
     public DbSet<Organisation> Organisation { get; set; }
     public DbSet<OrganisationRole> OrganisationRole { get; set; }
-    public DbSet<OrganisationTermset> OrganisationTermset { get; set; }
+    //public DbSet<OrganisationTermset> OrganisationTermset { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -20,6 +20,6 @@ public class RtsDbContext(DbContextOptions<RtsDbContext> options) : DbContext(op
 
         modelBuilder.ApplyConfiguration(new OrganisationConfiguration());
         modelBuilder.ApplyConfiguration(new OrganisationRoleConfiguration());
-        modelBuilder.ApplyConfiguration(new OrganisationTermsetConfiguration());
+        //modelBuilder.ApplyConfiguration(new OrganisationTermsetConfiguration());
     }
 }

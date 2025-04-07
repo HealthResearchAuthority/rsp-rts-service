@@ -1,7 +1,4 @@
-﻿using Refit;
-using Rsp.RtsImport.Application.DTO.Responses;
-
-namespace Rsp.IrasPortal.Application.ServiceClients;
+﻿namespace Rsp.IrasPortal.Application.ServiceClients;
 
 public interface IRtsAuthorisationServiceClient
 {

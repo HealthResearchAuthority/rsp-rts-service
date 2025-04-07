@@ -21,5 +21,5 @@ public class Organisation
     // Navigation properties
     public ICollection<OrganisationRole> Roles { get; set; } = [];
 
-    public OrganisationTermset TypeEntity { get; set; } // Need to change
+    //public OrganisationTermset TypeEntity { get; set; } // Need to change
 }

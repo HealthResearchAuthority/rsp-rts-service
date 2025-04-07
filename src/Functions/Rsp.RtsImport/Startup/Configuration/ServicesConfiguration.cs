@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Rsp.RtsImport.Application.Contracts;
-using Rsp.RtsImport.Infrastructure.HttpMessageHandlers;
+﻿using Rsp.RtsImport.Infrastructure.HttpMessageHandlers;
 using Rsp.RtsImport.Services;
 
 namespace Rsp.RtsImport.Startup.Configuration;

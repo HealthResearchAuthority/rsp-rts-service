@@ -1,6 +1,4 @@
-﻿using Rsp.RtsService.Domain.Entities;
-
-namespace Rsp.RtsImport.Application.DTO;
+﻿namespace Rsp.RtsImport.Application.DTO;
 
 public class RtsOrganisationAndRole
 {
