@@ -78,7 +78,7 @@ resources:
       name: 'HealthResearchAuthority/rsp-iras-api-tests'
       endpoint: AzureDevOpsToGitHubConnection
       ref: main
-    - repository: service_defaults # TODO double check if this is needed for this service
+    - repository: service_defaults
       type: github
       name: 'HealthResearchAuthority/rsp-service-defaults'
       endpoint: AzureDevOpsToGitHubConnection
