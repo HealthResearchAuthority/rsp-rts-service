@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Linq;
 using System.Text.Json;
 using EFCore.BulkExtensions;
 using Microsoft.EntityFrameworkCore;
@@ -60,27 +61,42 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
         }
 
         var result = new DbOperationResult();
+
         using (var trans = await _db.Database.BeginTransactionAsync())
         {
-            var organisationIds = _db.Organisation.Select(x => x.Id).ToHashSet();
-            var filteredRoles = dbRecords.Where(x => organisationIds.Contains(x.OrganisationId));
+            // Use HashSet for O(1) lookup
+            var organisationIds = new HashSet<string>(
+                await _db.Organisation.Select(x => x.Id).ToListAsync()
+            );
+
+            // This is now super fast (O(n))
+            var filteredRoles = dbRecords
+                .Where(x => organisationIds.Contains(x.OrganisationId))
+                .ToList(); // Materialize only once for BulkInsertOrUpdateAsync
+
+            if (!filteredRoles.Any())
+            {
+                result.RecordsUpdated = 0;
+                return result;
+            }
 
             _db.Database.SetCommandTimeout(500);
+
             var bulkConfig = new BulkConfig
             {
                 UseTempDB = true,
                 SetOutputIdentity = false,
-                ConflictOption = EFCore.BulkExtensions.ConflictOption.Ignore,
+                ConflictOption = ConflictOption.Replace, // Ensure both insert and update
                 BatchSize = 10000,
                 CalculateStats = true,
                 BulkCopyTimeout = 300
             };
+
             await _db.BulkInsertOrUpdateAsync(filteredRoles, bulkConfig);
             await trans.CommitAsync();
 
             if (bulkConfig.StatsInfo != null)
             {
-                // log number of items updated/inserted to the DB
                 result.RecordsUpdated =
                     bulkConfig.StatsInfo.StatsNumberUpdated + bulkConfig.StatsInfo.StatsNumberInserted;
             }
@@ -89,9 +105,9 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
         return result;
     }
 
+
     public async Task<IEnumerable<RtsOrganisationAndRole>> GetOrganisationsAndRoles(string _lastUpdated)
     {
-       
         int pageSize = 500;
         int maxConcurrency = 10;
 
@@ -112,15 +128,11 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
                 }
             });
 
-     
+        var finalResult = result
+            .DistinctBy(x => new { x.rtsOrganisation.Id, x.rtsRole })
+            .ToList();
 
-        //var finalResult = result
-        //    .DistinctBy(x => new { x.rtsOrganisation.Id, x.rtsRole })
-        //    .ToList();
-
-
-
-        return result;
+        return finalResult;
     }
 
 
@@ -202,14 +214,13 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
                     rtsRole = new OrganisationRole
                     {
                         Id = identifier,
-                        OrganisationId = entry.Resource.Identifier[0].Value,
+                        OrganisationId = entry.Resource.Id,
                         EndDate = enddate, // Make Nullabale in Database
                         Imported = DateTime.Now,
-                        //LastUpdated = input.ModifiedDate, // Get rid of in database.
                         StartDate = startdate,
                         SystemUpdated = DateTime.Now,
                         Scoper = scoper,
-                        //CreatedDate = input.CreatedDate.GetValueOrDefault(), // Can't find could be
+                        CreatedDate = DateTime.Now, // Can't find could be
                         Status = status
                     };
 
