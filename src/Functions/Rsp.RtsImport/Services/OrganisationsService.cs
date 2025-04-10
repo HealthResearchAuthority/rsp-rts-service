@@ -1,25 +1,42 @@
-﻿namespace Rsp.RtsImport.Services;
+﻿using System.Collections.Concurrent;
+using EFCore.BulkExtensions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Refit;
+using Rsp.Logging.Extensions;
+using Rsp.RtsImport.Application.Constants;
+using Rsp.RtsImport.Application.Contracts;
+using Rsp.RtsImport.Application.DTO;
+using Rsp.RtsImport.Application.DTO.Responses;
+using Rsp.RtsImport.Application.DTO.Responses.OrganisationsAndRolesDTOs;
+using Rsp.RtsImport.Application.ServiceClients;
+using Rsp.RtsService.Domain.Entities;
+using Rsp.RtsService.Infrastructure;
 
-public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, ILogger<OrganisationsService> logger)
-    : IOrganisationService
+namespace Rsp.RtsImport.Services;
+
+public class OrganisationsService(
+    IRtsServiceClient rtsClient,
+    RtsDbContext db,
+    ILogger<OrganisationsService> logger
+) : IOrganisationService
 {
-    private readonly RtsDbContext _db = db;
-    private readonly ILogger<OrganisationsService> _logger;
-    private readonly IRtsServiceClient _rtsClient = rtsClient;
-
-    public async Task<DbOperationResult> UpdateOrganisations(IEnumerable<Organisation> dbRecords,
-        bool onlyActive = false)
+    public async Task<DbOperationResult> UpdateOrganisations
+    (
+        IEnumerable<Organisation> items,
+        bool onlyActive = false
+    )
     {
         var result = new DbOperationResult();
 
         if (onlyActive)
         {
-            dbRecords = dbRecords.Where(x => x.Status == RtsRecordStatusOptions.ActiveOrg);
+            items = items.Where(x => x.Status == RtsRecordStatusOptions.ActiveOrg);
         }
 
-        using (var trans = await _db.Database.BeginTransactionAsync())
+        using (var trans = await db.Database.BeginTransactionAsync())
         {
-            _db.Database.SetCommandTimeout(500);
+            db.Database.SetCommandTimeout(500);
             var bulkConfig = new BulkConfig
             {
                 UseTempDB = true,
@@ -30,7 +47,7 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
                 CalculateStats = true,
                 BulkCopyTimeout = 300
             };
-            await _db.BulkInsertOrUpdateAsync(dbRecords, bulkConfig);
+            await db.BulkInsertOrUpdateAsync(items, bulkConfig);
             await trans.CommitAsync();
 
             if (bulkConfig.StatsInfo != null)
@@ -44,24 +61,28 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
         return result;
     }
 
-    public async Task<DbOperationResult> UpdateRoles(IEnumerable<OrganisationRole> dbRecords, bool onlyActive = false)
+    public async Task<DbOperationResult> UpdateRoles
+    (
+        IEnumerable<OrganisationRole> items,
+        bool onlyActive = false
+    )
     {
         if (onlyActive)
         {
-            dbRecords = dbRecords.Where(x => x.Status == RtsRecordStatusOptions.ActiveRole);
+            items = items.Where(x => x.Status == RtsRecordStatusOptions.ActiveRole);
         }
 
         var result = new DbOperationResult();
 
-        using (var trans = await _db.Database.BeginTransactionAsync())
+        using (var trans = await db.Database.BeginTransactionAsync())
         {
             // Use HashSet for O(1) lookup
             var organisationIds = new HashSet<string>(
-                await _db.Organisation.Select(x => x.Id).ToListAsync()
+                await db.Organisation.Select(x => x.Id).ToListAsync()
             );
 
             // This is now super fast (O(n))
-            var filteredRoles = dbRecords
+            var filteredRoles = items
                 .Where(x => organisationIds.Contains(x.OrganisationId))
                 .ToList(); // Materialize only once for BulkInsertOrUpdateAsync
 
@@ -71,7 +92,7 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
                 return result;
             }
 
-            _db.Database.SetCommandTimeout(500);
+            db.Database.SetCommandTimeout(500);
 
             var bulkConfig = new BulkConfig
             {
@@ -83,7 +104,7 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
                 BulkCopyTimeout = 300
             };
 
-            await _db.BulkInsertOrUpdateAsync(filteredRoles, bulkConfig);
+            await db.BulkInsertOrUpdateAsync(filteredRoles, bulkConfig);
             await trans.CommitAsync();
 
             if (bulkConfig.StatsInfo != null)
@@ -97,13 +118,13 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
     }
 
 
-    public async Task<IEnumerable<RtsOrganisationAndRole>> GetOrganisationsAndRoles(string _lastUpdated)
+    public async Task<IEnumerable<RtsOrganisationAndRole>> GetOrganisationsAndRoles(string lastUpdated)
     {
         var pageSize = 500;
         var maxConcurrency = 10;
 
         var result = new ConcurrentBag<RtsOrganisationAndRole>();
-        var totalRecords = await FetchPageCountAsync(_lastUpdated);
+        var totalRecords = await FetchPageCountAsync(lastUpdated);
         var totalPages = (int)Math.Ceiling(totalRecords / (double)pageSize);
 
         var pageIndices = Enumerable.Range(0, totalPages);
@@ -112,7 +133,7 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
             async (page, _) =>
             {
                 var offset = page * pageSize;
-                var data = await FetchOrganisationAndRolesAsync(_lastUpdated, offset, pageSize);
+                var data = await FetchOrganisationAndRolesAsync(lastUpdated, offset, pageSize);
                 foreach (var item in data)
                 {
                     result.Add(item);
@@ -120,17 +141,17 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
             });
 
         var finalResult = result
-            .DistinctBy(x => new { x.rtsOrganisation.Id, x.rtsRole })
+            .DistinctBy(x => new { x.RtsOrganisation.Id, rtsRole = x.RtsRole })
             .ToList();
 
         return finalResult;
     }
 
 
-    public async Task<int> FetchPageCountAsync(string _lastUpdated)
+    public async Task<int> FetchPageCountAsync(string lastUpdated)
     {
         ApiResponse<RtsOrganisationsAndRolesResponse>? result =
-            await rtsClient.GetOrganisationsAndRoles(_lastUpdated, 0, 1);
+            await rtsClient.GetOrganisationsAndRoles(lastUpdated, 0, 1);
 
         return result?.Content?.Total ?? -1;
     }
@@ -147,7 +168,7 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
                 Imported = DateTime.Now,
                 LastUpdated = entry.Resource.Meta.LastUpdated,
                 SystemUpdated = DateTime.Now,
-                Status = entry.Resource.Active, 
+                Status = entry.Resource.Active,
                 Address = entry.Resource.Address[0].Text,
                 CountryName = entry.Resource.Address[0].Country,
                 Name = entry.Resource.Name,
@@ -156,95 +177,93 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
                 Type = entry.Resource.Type[0].Text
             };
 
-            rtsOrganisationRole.rtsOrganisation = rtsOrganisation;
-            rtsOrganisationRole.rtsRole = [];
+            rtsOrganisationRole.RtsOrganisation = rtsOrganisation;
+            rtsOrganisationRole.RtsRole = [];
             var extensions = entry.Resource.Extension;
 
-            foreach (var extension in extensions)
+
+            var subExtensions = extensions
+                .Where(extension => extension.Extension is { Count: > 0 })
+                .Select(extension => extension.Extension);
+            foreach (var roleExtensions in subExtensions)
             {
-                if (extension.Extension is { Count: > 0 })
+                DateTime? startDate = null;
+                var status = "Active";
+                var identifier = "";
+                var scoper = -1;
+
+                foreach (var roleExtension in roleExtensions)
                 {
-                    var roleExtensions = extension.Extension;
-                    DateTime? startdate = null;
-                    DateTime? enddate = null;
-                    var status = "Active";
-                    var identifier = "";
-                    var rtsRole = new OrganisationRole();
-                    var scoper = -1;
-
-                    foreach (var roleExtension in roleExtensions)
+                    switch (roleExtension.Url)
                     {
-                        switch (roleExtension.Url)
+                        case "startDate":
+                            startDate = Convert.ToDateTime(roleExtension.ValueDate);
+                            break;
+                        case "status":
+                            status = roleExtension.ValueString;
+                            break;
+                        case "identifier":
+                            identifier = roleExtension.ValueString;
+                            break;
+                        case "scoper":
                         {
-                            case "startDate":
-                                startdate = Convert.ToDateTime(roleExtension.ValueDate);
-                                break;
-                            case "status":
-                                status = roleExtension.ValueString;
-                                break;
-                            case "identifier":
-                                identifier = roleExtension.ValueString;
-                                break;
-                            case "endDate":
-                                enddate = Convert.ToDateTime(roleExtension.ValueDate);
-                                break;
-                            case "scoper":
-                            {
-                                // Split the URL path by '/'
+                            // Split the URL path by '/'
+                            var segments = roleExtension.ValueReference.Reference.Split("/");
 
-                                var segments = roleExtension.ValueReference.Reference.Split("/");
-
-                                // Extract the last segment, which is the ID
-                                scoper = int.Parse(segments[segments.Length - 1]);
-                                break;
-                            }
+                            // Extract the last segment, which is the ID
+                            scoper = int.Parse(segments[^1]);
+                            break;
                         }
                     }
-
-                    rtsRole = new OrganisationRole
-                    {
-                        Id = identifier,
-                        OrganisationId = entry.Resource.Id,
-                        Imported = DateTime.Now,
-                        StartDate = startdate,
-                        SystemUpdated = DateTime.Now,
-                        Scoper = scoper,
-                        CreatedDate = DateTime.Now, // Can't find could be
-                        Status = status
-                    };
-
-                    rtsOrganisationRole.rtsRole.Add(rtsRole);
                 }
+
+                var rtsRole = new OrganisationRole
+                {
+                    Id = identifier,
+                    OrganisationId = entry.Resource.Id,
+                    Imported = DateTime.Now,
+                    StartDate = startDate,
+                    SystemUpdated = DateTime.Now,
+                    Scoper = scoper,
+                    CreatedDate = DateTime.Now, // Can't find could be
+                    Status = status
+                };
+
+                rtsOrganisationRole.RtsRole.Add(rtsRole);
             }
 
-            rtsOrganisationRole.rtsOrganisation.Roles = rtsOrganisationRole.rtsRole;
+            rtsOrganisationRole.RtsOrganisation.Roles = rtsOrganisationRole.RtsRole;
             return rtsOrganisationRole;
         }
         catch (Exception ex)
         {
-            _logger.LogAsInformation($"Error: {ex}");
+            logger.LogAsInformation($"Error: {ex}");
             return rtsOrganisationRole;
         }
     }
 
-    private async Task<IEnumerable<RtsOrganisationAndRole>> FetchOrganisationAndRolesAsync(string _lastUpdated,
-        int _offset, int _count)
+    private async Task<IEnumerable<RtsOrganisationAndRole>> FetchOrganisationAndRolesAsync
+    (
+        string lastUpdated,
+        int offset, 
+        int count
+    )
     {
         try
         {
-            var result = await rtsClient.GetOrganisationsAndRoles(_lastUpdated, _offset, _count);
+            var result = await rtsClient.GetOrganisationsAndRoles(lastUpdated, offset, count);
 
             var allData = result?.Content?.Entry
                 ?.Select(x => TransformOrganisationAndRoles(x))
                 .ToList();
 
-            return allData ?? Enumerable.Empty<RtsOrganisationAndRole>();
+            return allData ??[];
         }
         catch (Exception ex)
         {
             // Optional: Log and rethrow or return empty on failure
-            Console.WriteLine($"Error fetching data at offset {_offset}: {ex.Message}");
-            return Enumerable.Empty<RtsOrganisationAndRole>();
+            Console.WriteLine($"Error fetching data at offset {offset}: {ex.Message}");
+            return [];
         }
     }
 }

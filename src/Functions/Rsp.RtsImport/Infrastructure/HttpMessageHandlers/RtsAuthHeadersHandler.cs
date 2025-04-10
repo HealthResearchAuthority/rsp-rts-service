@@ -1,26 +1,34 @@
-﻿namespace Rsp.RtsImport.Infrastructure.HttpMessageHandlers;
+﻿using System.Net;
+using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
+using Rsp.RtsImport.Application.ServiceClients;
+using Rsp.RtsImport.Application.Settings;
+
+namespace Rsp.RtsImport.Infrastructure.HttpMessageHandlers;
 
 /// <summary>
 ///     Delegating handler to add authorization header, before calling external api
 /// </summary>
 /// <seealso cref="DelegatingHandler" />
-public class RtsAuthHeadersHandler(IRtsAuthorisationServiceClient authClient)
-    : DelegatingHandler
+public class RtsAuthHeadersHandler
+(
+    IRtsAuthorisationServiceClient authClient,
+    IOptions<AppSettings> appSettingsOptions
+) : DelegatingHandler
 {
-    /// <summary>Sends an HTTP request to the inner handler to send to the server as an asynchronous operation.</summary>
-    /// <param name="request">The HTTP request message to send to the server.</param>
-    /// <param name="cancellationToken">A cancellation token to cancel operation.</param>
-    /// <exception cref="T:System.ArgumentNullException">The <paramref name="request" /> was <see langword="null" />.</exception>
-    /// <returns>The task object representing the asynchronous operation.</returns>
+    private readonly AppSettings _appSettings = appSettingsOptions.Value;
+
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
         if (!request.RequestUri.AbsolutePath.Contains("auth"))
         {
-            // get authorisation token for the RTS API
-            var token = await authClient.GetBearerTokenAsync(
-                "grant_type=client_credentials&scope=openid%2Bprofile%2Bemail&client_id=aaU7PY4hz_x_RVOyCo09CulPbTca&client_secret=f2tHDyVGv2FBkZmmAXbryfL7hr0a",
-                cancellationToken);
+            // Build the request body from app settings
+            var requestBody = $"grant_type=client_credentials&=openid%2Bprofile%2Bemail" +
+                              $"&client_id={Uri.EscapeDataString(_appSettings.RtsApiClientId)}" +
+                              $"&client_secret={Uri.EscapeDataString(_appSettings.RtsApiClientSecret)}";
+
+            var token = await authClient.GetBearerTokenAsync(requestBody, cancellationToken);
 
             if (token?.StatusCode == HttpStatusCode.OK && !string.IsNullOrEmpty(token?.Content?.AccessToken))
             {

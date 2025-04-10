@@ -11,23 +11,22 @@ public class OrganisationSpecification : Specification<Organisation>
     /// <param name="id">Id of the organisatio record</param>
     public OrganisationSpecification(string id)
     {
-        var builder = Query
+        Query
             .AsNoTracking()
             .Where(entity => entity.Id == id)
             .Include(x => x.Roles);
-        //.Include(x => x.TypeEntity);
     }
 
     public OrganisationSpecification(string name, int pageSize, string roleId)
     {
-        var builder = Query.AsNoTracking();
+        Query.AsNoTracking();
 
         if (!string.IsNullOrEmpty(roleId))
         {
-            builder.Where(x => x.Roles.Any(x => x.Id == roleId));
+            Query.Where(x => x.Roles.Any(x => x.Id == roleId));
         }
 
-        builder.Where(x => x.Name != null && x.Name.Contains(name))
+        Query.Where(x => x.Name != null && x.Name.Contains(name))
             .Take(pageSize);
     }
 }

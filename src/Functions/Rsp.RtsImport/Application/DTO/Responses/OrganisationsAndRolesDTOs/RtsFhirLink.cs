@@ -1,7 +1,11 @@
-﻿namespace Rsp.RtsImport.Application.DTO.Responses.OrganisationsAndRolesDTOs;
+﻿using System.Text.Json.Serialization;
+
+namespace Rsp.RtsImport.Application.DTO.Responses.OrganisationsAndRolesDTOs;
 
 public class RtsFhirLink
 {
-    public string relation { get; set; }
-    public string url { get; set; }
+    [JsonPropertyName("relation")] 
+    public string Relation { get; set; } = null!;
+    [JsonPropertyName("url")] 
+    public string Url { get; set; } = null!;
 }

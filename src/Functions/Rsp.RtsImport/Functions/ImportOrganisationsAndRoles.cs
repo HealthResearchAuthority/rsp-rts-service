@@ -1,17 +1,21 @@
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Logging;
+using Rsp.Logging.Extensions;
+using Rsp.RtsImport.Application.Constants;
+using Rsp.RtsImport.Application.Contracts;
+
 namespace Rsp.RtsImport.Functions;
 
 public class ImportOrganisationsAndRoles
+(
+    ILogger<ImportOrganisationsAndRoles> logger,
+    IOrganisationImportService importService
+)
 {
-    private readonly IOrganisationImportService _importService;
-    private readonly ILogger<ImportOrganisationsAndRoles> _logger;
-
-    public ImportOrganisationsAndRoles(ILogger<ImportOrganisationsAndRoles> logger,
-        IOrganisationImportService importService)
-    {
-        _logger = logger;
-        _importService = importService;
-    }
-
     [Function("ImportOrganisationAndRoles")]
     public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequest req)
     {
@@ -42,7 +46,7 @@ public class ImportOrganisationsAndRoles
                 }
                 else
                 {
-                    _logger.LogAsError(ErrorStatus.BadRequest,
+                    logger.LogAsError(ErrorStatus.BadRequest,
                         "_lastUpdated is not provided in the correct format of: 'yyyy-MM-dd'");
                     return new BadRequestObjectResult(
                         "_lastUpdated is not provided in the correct format of: 'yyyy-MM-dd'");
@@ -55,15 +59,15 @@ public class ImportOrganisationsAndRoles
                 _lastUpdated = null;
             }
 
-            _logger.LogAsInformation("Organisations import started");
+            logger.LogAsInformation("Organisations import started");
 
-            var importOrganisations = await _importService.ImportOrganisationsAndRoles(_lastUpdated!, onlyActive);
+            var importOrganisations = await importService.ImportOrganisationsAndRoles(_lastUpdated!, onlyActive);
 
             return new OkObjectResult($"Import complete Updated: {importOrganisations}");
         }
         catch (Exception ex)
         {
-            _logger.LogAsError(ErrorStatus.ServerError, ex.Message, ex);
+            logger.LogAsError(ErrorStatus.ServerError, ex.Message, ex);
             return new ObjectResult(new
             {
                 error = ErrorStatus.ServerError,

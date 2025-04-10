@@ -1,7 +1,9 @@
-﻿namespace Rsp.RtsImport.Application.DTO;
+﻿using Rsp.RtsService.Domain.Entities;
+
+namespace Rsp.RtsImport.Application.DTO;
 
 public class RtsOrganisationAndRole
 {
-    public Organisation rtsOrganisation { get; set; }
-    public IList<OrganisationRole> rtsRole { get; set; }
+    public Organisation RtsOrganisation { get; set; }
+    public IList<OrganisationRole> RtsRole { get; set; }
 }

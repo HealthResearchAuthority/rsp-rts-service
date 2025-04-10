@@ -1,17 +1,18 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Logging;
+using Rsp.Logging.Extensions;
+using Rsp.RtsImport.Application.Constants;
+using Rsp.RtsImport.Application.Contracts;
+
 namespace Rsp.RtsImport.Functions;
 
 public class ImportAllData
+(
+    ILogger<ImportAllData> logger,
+    IOrganisationImportService importService
+)
 {
-    private readonly IOrganisationImportService _importService;
-    private readonly ILogger<ImportAllData> _logger;
-
-    public ImportAllData(ILogger<ImportAllData> logger,
-        IOrganisationImportService importService)
-    {
-        _logger = logger;
-        _importService = importService;
-    }
-
     // function that runs daily at 7AM and checks for updated RTS data.
     [Function("ImportAllData")]
     public async Task<IActionResult> Run(
@@ -24,14 +25,14 @@ public class ImportAllData
 
             // order of data retrieval is important due to foreign key constrains
             // Step 1: Import organisation
-            var updatedOrganisationAndRoles = await _importService.ImportOrganisationsAndRoles(_lastUpdated);
+            var updatedOrganisationAndRoles = await importService.ImportOrganisationsAndRoles(_lastUpdated);
 
             return new OkObjectResult(
                 $"Sucesfully ran the update process. Total records updated: {updatedOrganisationAndRoles}.");
         }
         catch (Exception ex)
         {
-            _logger.LogAsError(ErrorStatus.ServerError, ex.Message, ex);
+            logger.LogAsError(ErrorStatus.ServerError, ex.Message, ex);
 
             return new ObjectResult(new
             {

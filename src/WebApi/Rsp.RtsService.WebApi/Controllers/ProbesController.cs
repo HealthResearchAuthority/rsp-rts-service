@@ -8,20 +8,17 @@ namespace Rsp.RtsService.WebApi.Controllers;
 [Route("[controller]")]
 public class ProbesController(ILogger<ProbesController> logger) : ControllerBase
 {
-    private readonly ILogger<ProbesController> _logger = logger;
-
     [HttpGet("liveness")]
     public IActionResult Liveness()
     {
         try
         {
-            _logger.LogAsInformation("Sucesfully called the LIVENESS probe.");
+            logger.LogAsInformation("Sucesfully called the LIVENESS probe.");
             return Ok();
-            ;
         }
         catch (Exception ex)
         {
-            _logger.LogAsError("SERVER_ERROROR", ex.Message, ex);
+            logger.LogAsError("SERVER_ERROROR", ex.Message, ex);
             throw;
         }
     }
@@ -31,13 +28,13 @@ public class ProbesController(ILogger<ProbesController> logger) : ControllerBase
     {
         try
         {
-            _logger.LogAsInformation("Sucesfully called the READINESS probe.");
+            logger.LogAsInformation("Sucesfully called the READINESS probe.");
             return Ok();
             ;
         }
         catch (Exception ex)
         {
-            _logger.LogAsError("SERVER_ERROROR", ex.Message, ex);
+            logger.LogAsError("SERVER_ERROROR", ex.Message, ex);
             throw;
         }
     }
@@ -47,13 +44,13 @@ public class ProbesController(ILogger<ProbesController> logger) : ControllerBase
     {
         try
         {
-            _logger.LogAsInformation("Sucesfully called the STARTUP probe.");
+            logger.LogAsInformation("Sucesfully called the STARTUP probe.");
             return Ok();
             ;
         }
         catch (Exception ex)
         {
-            _logger.LogAsError("SERVER_ERROROR", ex.Message, ex);
+            logger.LogAsError("SERVER_ERROROR", ex.Message, ex);
             throw;
         }
     }

@@ -1,4 +1,11 @@
-﻿namespace Rsp.RtsImport.Startup.Configuration;
+﻿using System.Diagnostics.CodeAnalysis;
+using Azure.Identity;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
+using Microsoft.Extensions.DependencyInjection;
+using Rsp.RtsImport.Application.Settings;
+
+namespace Rsp.RtsImport.Startup.Configuration;
 
 [ExcludeFromCodeCoverage]
 public static class AzureAppConfiguration

@@ -1,4 +1,8 @@
-﻿namespace Rsp.RtsImport.Application.Contracts;
+﻿using Rsp.RtsImport.Application.DTO;
+using Rsp.RtsImport.Application.DTO.Responses.OrganisationsAndRolesDTOs;
+using Rsp.RtsService.Domain.Entities;
+
+namespace Rsp.RtsImport.Application.Contracts;
 
 public interface IOrganisationService
 {
@@ -6,9 +10,9 @@ public interface IOrganisationService
 
     Task<DbOperationResult> UpdateRoles(IEnumerable<OrganisationRole> items, bool onlyActive = false);
 
-    Task<IEnumerable<RtsOrganisationAndRole>> GetOrganisationsAndRoles(string _lastUpdated);
+    Task<IEnumerable<RtsOrganisationAndRole>> GetOrganisationsAndRoles(string lastUpdated);
 
-    Task<int> FetchPageCountAsync(string _lastUpdated);
+    Task<int> FetchPageCountAsync(string lastUpdated);
 
     RtsOrganisationAndRole TransformOrganisationAndRoles(RtsFhirEntry entry);
 }

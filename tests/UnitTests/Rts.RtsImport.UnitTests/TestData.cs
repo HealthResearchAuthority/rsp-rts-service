@@ -1,4 +1,8 @@
-﻿namespace Rts.RtsImport.UnitTests;
+﻿using AutoFixture;
+using Rsp.RtsService.Domain.Entities;
+using Rsp.RtsService.Infrastructure;
+
+namespace Rts.RtsImport.UnitTests;
 
 /// <summary>
 /// Data seeding class

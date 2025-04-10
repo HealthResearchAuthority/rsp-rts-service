@@ -16,6 +16,6 @@
         "RtsApiBaseUrl": "",
         "RtsApiClientId": "",
         "RtsApiClientSecret": "",
-        "OATRtsAuthApiBaseUrl": ""
+        "RtsAuthApiBaseUrl": ""
     }
 }

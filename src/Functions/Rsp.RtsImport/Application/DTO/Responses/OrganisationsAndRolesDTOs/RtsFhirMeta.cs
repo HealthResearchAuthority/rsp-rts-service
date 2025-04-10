@@ -1,6 +1,9 @@
-﻿namespace Rsp.RtsImport.Application.DTO.Responses.OrganisationsAndRolesDTOs;
+﻿using System.Text.Json.Serialization;
+
+namespace Rsp.RtsImport.Application.DTO.Responses.OrganisationsAndRolesDTOs;
 
 public class RtsFhirMeta
 {
-    [JsonPropertyName("lastUpdated")] public DateTime LastUpdated { get; set; }
+    [JsonPropertyName("lastUpdated")] 
+    public DateTime LastUpdated { get; set; }
 }

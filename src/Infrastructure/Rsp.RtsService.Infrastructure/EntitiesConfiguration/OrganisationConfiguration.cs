@@ -22,10 +22,5 @@ public class OrganisationConfiguration : IEntityTypeConfiguration<Organisation>
             .HasMany(x => x.Roles)
             .WithOne()
             .HasForeignKey(x => x.OrganisationId);
-
-        //builder
-        //    .HasOne(x => x.TypeEntity)
-        //    .WithMany()
-        //    .HasForeignKey(x => x.Type);
     }
 }

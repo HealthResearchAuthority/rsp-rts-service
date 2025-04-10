@@ -5,6 +5,7 @@
         <OutputType>Exe</OutputType>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <UserSecretsId>c647f7df-69bc-4906-a4c5-5cec993b97b5</UserSecretsId>
     </PropertyGroup>
     <ItemGroup>
         <Content Include="local.settings.json">
@@ -22,8 +23,7 @@
         <!-- <PackageReference Include="Microsoft.Azure.Functions.Worker.ApplicationInsights" Version="2.0.0-preview5" /> -->
         <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.0.0-preview5" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.3.0" />
-        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore"
-                          Version="2.0.0-preview4" />
+        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="2.0.0-preview4" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Timer" Version="4.3.1" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.0-preview2" />
         <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.1" />
@@ -34,8 +34,7 @@
         <PackageReference Include="Rsp.Logging" Version="1.0.11" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference
-            Include="..\..\Infrastructure\Rsp.RtsService.Infrastructure\Rsp.RtsService.Infrastructure.csproj" />
+        <ProjectReference Include="..\..\Infrastructure\Rsp.RtsService.Infrastructure\Rsp.RtsService.Infrastructure.csproj" />
     </ItemGroup>
     <ItemGroup>
         <None Update="host.json">

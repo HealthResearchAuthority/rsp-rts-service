@@ -1,4 +1,6 @@
-﻿namespace Rsp.RtsImport.Application.Settings;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Rsp.RtsImport.Application.Settings;
 
 [ExcludeFromCodeCoverage]
 public class AzureAppConfiguration

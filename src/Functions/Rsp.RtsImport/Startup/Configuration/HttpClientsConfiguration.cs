@@ -1,4 +1,12 @@
-﻿namespace Rsp.RtsImport.Startup.Configuration;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
+using Refit;
+using Rsp.RtsImport.Application.ServiceClients;
+using Rsp.RtsImport.Application.Settings;
+using Rsp.RtsImport.Infrastructure.HttpMessageHandlers;
+
+namespace Rsp.RtsImport.Startup.Configuration;
 
 [ExcludeFromCodeCoverage]
 public static class HttpClientsConfiguration
@@ -17,7 +25,7 @@ public static class HttpClientsConfiguration
 
         services
             .AddRestClient<IRtsAuthorisationServiceClient>()
-            .ConfigureHttpClient(client => client.BaseAddress = appSettings.OATRtsAuthApiBaseUrl);
+            .ConfigureHttpClient(client => client.BaseAddress = appSettings.RtsAuthApiBaseUrl);
 
         return services;
     }
