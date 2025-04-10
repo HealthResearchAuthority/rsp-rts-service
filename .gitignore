@@ -7,7 +7,7 @@
 #local.settings.json
 src/Functions/*/Properties/serviceDependencies.local.json
 src/Functions/*/Properties/serviceDependencies.json
-src/Functions/*/local.settings.json
+#src/Functions/*/local.settings.json
 
 # User-specific files
 *.rsuser

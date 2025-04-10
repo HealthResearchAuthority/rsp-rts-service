@@ -1,0 +1,21 @@
+{
+    "IsEncrypted": false,
+    "Values": {
+        "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+        "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated"
+    },
+    "ConnectionStrings": {
+        "rtsDB": ""
+    },
+    "AppSettings": {
+        "AzureAppConfiguration": {
+            "Endpoint": "",
+            "IdentityClientID": ""
+        },
+        "AzureVaultUri": "",
+        "RtsApiBaseUrl": "",
+        "RtsApiClientId": "",
+        "RtsApiClientSecret": "",
+        "OATRtsAuthApiBaseUrl": ""
+    }
+}
