@@ -1,5 +1,6 @@
 ﻿namespace Rsp.RtsImport.Application.Settings;
 
+[ExcludeFromCodeCoverage]
 public class AppSettings
 {
     public const string ServiceLabel = "rtsimportfunction";

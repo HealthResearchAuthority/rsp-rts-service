@@ -1,33 +1,29 @@
-﻿using System.Text.Json;
-using Rsp.IrasPortal.Application.ServiceClients;
-using Rsp.RtsImport.Application.ServiceClients;
-using Rsp.RtsImport.Infrastructure.HttpMessageHandlers;
+﻿namespace Rsp.RtsImport.Startup.Configuration;
 
-namespace Rsp.RtsImport.Startup.Configuration;
-
+[ExcludeFromCodeCoverage]
 public static class HttpClientsConfiguration
 {
     /// <summary>
-    /// Adds the Orchestration service http clients
+    ///     Adds the Orchestration service http clients
     /// </summary>
     /// <param name="services">Specifies the contract for a collection of service descriptors</param>
     /// <param name="appSettings">Application settings from appsettings.json</param>
     public static IServiceCollection AddHttpClients(this IServiceCollection services, AppSettings appSettings)
     {
         services
-           .AddRestClient<IRtsServiceClient>()
-           .ConfigureHttpClient(client => client.BaseAddress = appSettings.RtsApiBaseUrl)
-           .AddHttpMessageHandler<RtsAuthHeadersHandler>();
+            .AddRestClient<IRtsServiceClient>()
+            .ConfigureHttpClient(client => client.BaseAddress = appSettings.RtsApiBaseUrl)
+            .AddHttpMessageHandler<RtsAuthHeadersHandler>();
 
         services
-           .AddRestClient<IRtsAuthorisationServiceClient>()
-           .ConfigureHttpClient(client => client.BaseAddress = appSettings.OATRtsAuthApiBaseUrl);
+            .AddRestClient<IRtsAuthorisationServiceClient>()
+            .ConfigureHttpClient(client => client.BaseAddress = appSettings.OATRtsAuthApiBaseUrl);
 
         return services;
     }
 
     /// <summary>
-    /// Adds the rest client.
+    ///     Adds the rest client.
     /// </summary>
     /// <typeparam name="T">Interface to register as a Refit client</typeparam>
     /// <param name="services">Specifies the contract for a collection of service descriptors</param>

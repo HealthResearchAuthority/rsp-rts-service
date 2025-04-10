@@ -1,5 +1,3 @@
-using Microsoft.Azure.Functions.Worker.Middleware;
-
 namespace Rsp.RtsImport.Infrastructure;
 
 public class ExceptionHandlingMiddleware(ILogger<ExceptionHandlingMiddleware> logger) : IFunctionsWorkerMiddleware

@@ -1,12 +1,9 @@
-using System.Diagnostics;
-using Microsoft.AspNetCore.Http;
-
 namespace Rsp.RtsImport.Functions;
 
 public class ImportOrganisationsAndRoles
 {
-    private readonly ILogger<ImportOrganisationsAndRoles> _logger;
     private readonly IOrganisationImportService _importService;
+    private readonly ILogger<ImportOrganisationsAndRoles> _logger;
 
     public ImportOrganisationsAndRoles(ILogger<ImportOrganisationsAndRoles> logger,
         IOrganisationImportService importService)
@@ -22,11 +19,11 @@ public class ImportOrganisationsAndRoles
 
         try
         {
-            bool onlyActive =
+            var onlyActive =
                 !string.IsNullOrEmpty(req.Query["onlyActive"]) &&
                 bool.Parse(req.Query["onlyActive"]); // if true then only active records will be imported
-            bool importAllRecords = !string.IsNullOrEmpty(req.Query["importAllRecords"]) &&
-                                    bool.Parse(req.Query["importAllRecords"]);
+            var importAllRecords = !string.IsNullOrEmpty(req.Query["importAllRecords"]) &&
+                                   bool.Parse(req.Query["importAllRecords"]);
 
             // last modified date should be yesterday's date. This is to ensure that only data changes since yesterday's pull are retrieved
             var _lastUpdated = DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd");
@@ -37,7 +34,7 @@ public class ImportOrganisationsAndRoles
             {
                 // check the parameter lastModified date is in the expected format
                 var dateInCorrectFormat = DateTime.TryParseExact(req.Query["_lastUpdated"], "yyyy-MM-dd", null,
-                    System.Globalization.DateTimeStyles.None, out DateTime date);
+                    DateTimeStyles.None, out var date);
                 if (dateInCorrectFormat)
                 {
                     // use the parameter date instead of the default

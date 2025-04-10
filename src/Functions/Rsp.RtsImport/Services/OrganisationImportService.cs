@@ -20,13 +20,15 @@ public class OrganisationImportService : IOrganisationImportService
         var test = resultsOrgAndRoles.ToList();
         if (resultsOrgAndRoles != null && resultsOrgAndRoles.Any())
         {
-            _logger.LogAsInformation(resultsOrgAndRoles.Count().ToString(), "Number of organisation items saving to database");
+            _logger.LogAsInformation(resultsOrgAndRoles.Count().ToString(),
+                "Number of organisation items saving to database");
 
-            int updatesCounter = 0;
+            var updatesCounter = 0;
             var resultsOrg = resultsOrgAndRoles.Select(x => x.rtsOrganisation);
             var saveOrg = await _organisationService.UpdateOrganisations(resultsOrg, onlyActive);
             updatesCounter += saveOrg.RecordsUpdated;
-            var finalMessageOrg = $"Successfully finished saving organisation items to the database. Updated: {saveOrg.RecordsUpdated} organisation items";
+            var finalMessageOrg =
+                $"Successfully finished saving organisation items to the database. Updated: {saveOrg.RecordsUpdated} organisation items";
             _logger.LogAsInformation(finalMessageOrg);
             var resultsRoles = resultsOrgAndRoles.Select(x => x.rtsRole);
             IEnumerable<OrganisationRole> resultsRolesflattened = resultsRoles.SelectMany(innerList => innerList);
@@ -35,10 +37,12 @@ public class OrganisationImportService : IOrganisationImportService
             var saveRole = await _organisationService.UpdateRoles(resultsRolesflattened, onlyActive);
             updatesCounter += saveRole.RecordsUpdated;
 
-            var finalMessageRole = $"Successfully finished saving role items to the database. Updated: {saveRole.RecordsUpdated} role items";
+            var finalMessageRole =
+                $"Successfully finished saving role items to the database. Updated: {saveRole.RecordsUpdated} role items";
             _logger.LogAsInformation(finalMessageRole);
 
-            var finalMessage = $"Successfully finished saving Organisation and Role items to the database. Updated: {updatesCounter} role items";
+            var finalMessage =
+                $"Successfully finished saving Organisation and Role items to the database. Updated: {updatesCounter} role items";
             _logger.LogAsInformation(finalMessageRole);
             return updatesCounter;
         }

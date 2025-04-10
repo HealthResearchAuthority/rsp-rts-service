@@ -1,20 +1,11 @@
-﻿using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Linq;
-using System.Text.Json;
-using EFCore.BulkExtensions;
-using Microsoft.EntityFrameworkCore;
-using Rsp.RtsImport.Application.ServiceClients;
-using Rsp.RtsService.Infrastructure;
-
-namespace Rsp.RtsImport.Services;
+﻿namespace Rsp.RtsImport.Services;
 
 public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, ILogger<OrganisationsService> logger)
     : IOrganisationService
 {
-    private readonly IRtsServiceClient _rtsClient = rtsClient;
     private readonly RtsDbContext _db = db;
     private readonly ILogger<OrganisationsService> _logger;
+    private readonly IRtsServiceClient _rtsClient = rtsClient;
 
     public async Task<DbOperationResult> UpdateOrganisations(IEnumerable<Organisation> dbRecords,
         bool onlyActive = false)
@@ -33,7 +24,7 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
             {
                 UseTempDB = true,
                 SetOutputIdentity = false,
-                ConflictOption = EFCore.BulkExtensions.ConflictOption.None,
+                ConflictOption = ConflictOption.None,
                 BatchSize = 10000,
                 TrackingEntities = false,
                 CalculateStats = true,
@@ -108,8 +99,8 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
 
     public async Task<IEnumerable<RtsOrganisationAndRole>> GetOrganisationsAndRoles(string _lastUpdated)
     {
-        int pageSize = 500;
-        int maxConcurrency = 10;
+        var pageSize = 500;
+        var maxConcurrency = 10;
 
         var result = new ConcurrentBag<RtsOrganisationAndRole>();
         var totalRecords = await FetchPageCountAsync(_lastUpdated);
@@ -120,7 +111,7 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
         await Parallel.ForEachAsync(pageIndices, new ParallelOptions { MaxDegreeOfParallelism = maxConcurrency },
             async (page, _) =>
             {
-                int offset = page * pageSize;
+                var offset = page * pageSize;
                 var data = await FetchOrganisationAndRolesAsync(_lastUpdated, offset, pageSize);
                 foreach (var item in data)
                 {
@@ -156,14 +147,13 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
                 Imported = DateTime.Now,
                 LastUpdated = entry.Resource.Meta.LastUpdated,
                 SystemUpdated = DateTime.Now,
-                Status = entry.Resource.Active, // Change to boolean in database/
+                Status = entry.Resource.Active, 
                 Address = entry.Resource.Address[0].Text,
-                //CountryIdentifier = input.UKCountryIdentifier,
                 CountryName = entry.Resource.Address[0].Country,
                 Name = entry.Resource.Name,
                 TypeId = entry.Resource.Type[0].Coding[0].Code,
                 TypeName = entry.Resource.Type[0].Text,
-                Type = entry.Resource.Type[0].Text //TODO: NEED TO CLARIFY THIS
+                Type = entry.Resource.Type[0].Text
             };
 
             rtsOrganisationRole.rtsOrganisation = rtsOrganisation;
@@ -202,7 +192,7 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
                             {
                                 // Split the URL path by '/'
 
-                                string[] segments = roleExtension.ValueReference.Reference.Split("/");
+                                var segments = roleExtension.ValueReference.Reference.Split("/");
 
                                 // Extract the last segment, which is the ID
                                 scoper = int.Parse(segments[segments.Length - 1]);
@@ -215,7 +205,6 @@ public class OrganisationsService(IRtsServiceClient rtsClient, RtsDbContext db, 
                     {
                         Id = identifier,
                         OrganisationId = entry.Resource.Id,
-                        EndDate = enddate, // Make Nullabale in Database
                         Imported = DateTime.Now,
                         StartDate = startdate,
                         SystemUpdated = DateTime.Now,

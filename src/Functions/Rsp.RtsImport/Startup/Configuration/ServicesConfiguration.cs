@@ -1,8 +1,6 @@
-﻿using Rsp.RtsImport.Infrastructure.HttpMessageHandlers;
-using Rsp.RtsImport.Services;
+﻿namespace Rsp.RtsImport.Startup.Configuration;
 
-namespace Rsp.RtsImport.Startup.Configuration;
-
+[ExcludeFromCodeCoverage]
 public static class ServicesConfiguration
 {
     public static IServiceCollection AddServices(this IServiceCollection services)

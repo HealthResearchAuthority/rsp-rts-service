@@ -1,12 +1,3 @@
-using Microsoft.Azure.Functions.Worker.Builder;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Microsoft.FeatureManagement;
-using Rsp.Logging.Interceptors;
-using Rsp.RtsImport.Startup.Configuration;
-using Rsp.RtsService.Infrastructure;
-
 var builder = FunctionsApplication.CreateBuilder(args);
 builder.ConfigureFunctionsWebApplication();
 
