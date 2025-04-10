@@ -30,19 +30,19 @@ public class ImportOrganisationsAndRoles
                                    bool.Parse(req.Query["importAllRecords"]);
 
             // last modified date should be yesterday's date. This is to ensure that only data changes since yesterday's pull are retrieved
-            var _lastUpdated = DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd");
+            var lastUpdated = DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd");
 
             // check if there is a the optional _lastUpdated parameter is sent in the request. This overrides yesterday's date.
-            var _lastUpdatedParameter = req.Query["_lastUpdated"];
-            if (!string.IsNullOrEmpty(_lastUpdatedParameter))
+            var lastUpdatedParameter = req.Query["_lastUpdated"];
+            if (!string.IsNullOrEmpty(lastUpdatedParameter))
             {
                 // check the parameter lastModified date is in the expected format
                 var dateInCorrectFormat = DateTime.TryParseExact(req.Query["_lastUpdated"], "yyyy-MM-dd", null,
-                    DateTimeStyles.None, out var date);
+                    DateTimeStyles.None, out _);
                 if (dateInCorrectFormat)
                 {
                     // use the parameter date instead of the default
-                    _lastUpdated = _lastUpdatedParameter;
+                    lastUpdated = lastUpdatedParameter;
                 }
                 else
                 {
@@ -56,12 +56,12 @@ public class ImportOrganisationsAndRoles
             // if importAllRecords parameter is a true then invalidate import date to get all records from API
             if (importAllRecords)
             {
-                _lastUpdated = null;
+                lastUpdated = null;
             }
 
             logger.LogAsInformation("Organisations import started");
 
-            var importOrganisations = await importService.ImportOrganisationsAndRoles(_lastUpdated!, onlyActive);
+            var importOrganisations = await importService.ImportOrganisationsAndRoles(lastUpdated!, onlyActive);
 
             return new OkObjectResult($"Import complete Updated: {importOrganisations}");
         }

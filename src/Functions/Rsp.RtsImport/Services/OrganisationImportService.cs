@@ -11,10 +11,10 @@ public class OrganisationImportService
     IOrganisationService organisationService
 ) : IOrganisationImportService
 {
-    public async Task<int> ImportOrganisationsAndRoles(string _lastUpdated, bool onlyActive = false)
+    public async Task<int> ImportOrganisationsAndRoles(string lastUpdated, bool onlyActive = false)
     {
         logger.LogAsInformation("Fetching organisation items from API.");
-        var resultsOrgAndRoles = await organisationService.GetOrganisationsAndRoles(_lastUpdated);
+        var resultsOrgAndRoles = await organisationService.GetOrganisationsAndRoles(lastUpdated);
         logger.LogAsInformation(resultsOrgAndRoles.Count().ToString(), "Number of organisation items fetched");
 
         if (resultsOrgAndRoles != null && resultsOrgAndRoles.Any())

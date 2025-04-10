@@ -2,5 +2,5 @@
 
 public interface IOrganisationImportService
 {
-    Task<int> ImportOrganisationsAndRoles(string dateModified, bool onlyActive = false);
+    Task<int> ImportOrganisationsAndRoles(string lastUpdated, bool onlyActive = false);
 }

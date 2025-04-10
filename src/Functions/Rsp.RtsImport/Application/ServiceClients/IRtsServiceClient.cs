@@ -5,7 +5,7 @@ namespace Rsp.RtsImport.Application.ServiceClients;
 
 public interface IRtsServiceClient
 {
-    [Get("/api/organization")]
+    [Get("/organization")]
     [Headers("Authorization: Bearer")]
     public Task<ApiResponse<RtsOrganisationsAndRolesResponse>> GetOrganisationsAndRoles
     (
