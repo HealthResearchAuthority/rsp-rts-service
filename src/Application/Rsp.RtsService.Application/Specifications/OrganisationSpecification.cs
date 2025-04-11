@@ -26,7 +26,7 @@ public class OrganisationSpecification : Specification<Organisation>
             Query.Where(x => x.Roles.Any(x => x.Id == roleId));
         }
 
-        Query.Where(x => x.Name != null && x.Name.Contains(name))
+        Query.Where(x => x.Name != null && x.Name.Contains(name) && x.Status == true)
             .Take(pageSize);
     }
 }
