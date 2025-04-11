@@ -96,8 +96,8 @@ stages:
       - template: jobs/build.yaml@library
         parameters:
           run_github_security_scan: false
-          sonar_project_key: HealthResearchAuthority_rsp-rts-import-function
-          sonar_project_name: healthresearchauthority
+          sonar_project_key: HealthResearchAuthority_rsp-rts-service
+          sonar_project_name: rsp-rts-service
           run_sonarcloud_analysis: ${{ parameters.run_sonarcloud_analysis }}
           install_aspire: true
           service_defaults_repo: service_defaults
