@@ -61,6 +61,11 @@ resources:
       name: 'HealthResearchAuthority/rsp-azure-devops-library'
       endpoint: AzureDevOpsToGitHubConnection
       ref: ${{ parameters.devops_library_branch }}
+    - repository: service_defaults
+      type: github
+      name: 'HealthResearchAuthority/rsp-service-defaults'
+      endpoint: AzureDevOpsToGitHubConnection
+      ref: main
 
 stages:
   - stage: dev
