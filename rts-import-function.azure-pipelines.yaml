@@ -114,26 +114,22 @@ stages:
         service_defaults_repo: service_defaults
 
   - stage: systemtest_auto
-    displayName: "System Test Auto"
-    variables:
+    variables: 
       - group: 'STAutoEnvironment'
     condition: eq('${{ parameters.env }}', 'systemtest_auto')
     jobs:
-      - job: STAutoEnvironment
-        steps:
-          - script: |
-              echo 'env: system test auto'
+      - template: jobs/deployFunction.yaml@library
+        parameters:
+          appSettings: $(appSettingsJson)
 
   - stage: systemtest_manual
-    displayName: "System Test Manual"
-    variables:
+    variables: 
       - group: 'STManualEnvironment'
     condition: eq('${{ parameters.env }}', 'systemtest_manual')
     jobs:
-      - job: SystemTestManual
-        steps:
-          - script: |
-              echo 'env: system test manual'
+      - template: jobs/deployFunction.yaml@library
+        parameters:
+          appSettings: $(appSettingsJson)
 
   - stage: system_integration_test
     displayName: "System Integration Test"
