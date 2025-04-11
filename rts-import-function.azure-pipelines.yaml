@@ -112,8 +112,7 @@ stages:
     condition: eq('${{ parameters.env }}', 'systemtest_manual')
     jobs:
     - job:
-      - job: SystemTestManual
-        steps:
+        - steps:
           - script: |
               echo 'env: system test manual'
 
@@ -121,7 +120,6 @@ stages:
     displayName: "System Integration Test"
     jobs:
     - job:
-      - job: IntegrationTest
         steps:
           - script: |
               echo 'env: system integration test'
