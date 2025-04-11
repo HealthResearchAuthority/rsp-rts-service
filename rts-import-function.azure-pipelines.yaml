@@ -80,6 +80,7 @@ stages:
           sonar_project_key: HealthResearchAuthority_rsp-rts-import-function
           sonar_project_name: healthresearchauthority
           run_sonarcloud_analysis: ${{ parameters.run_sonarcloud_analysis }}
+          service_defaults_repo: service_defaults
           run_github_security_scan: false
       - template: jobs/deployFunction.yaml@library
         parameters:
