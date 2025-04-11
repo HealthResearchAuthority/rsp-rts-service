@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Rsp.RtsService.Infrastructure;
 
@@ -11,9 +12,11 @@ using Rsp.RtsService.Infrastructure;
 namespace Rsp.RtsService.Infrastructure.Migrations
 {
     [DbContext(typeof(RtsDbContext))]
-    partial class RtsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250407093314_RemoveTermsetTest")]
+    partial class RemoveTermsetTest
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -28,6 +31,9 @@ namespace Rsp.RtsService.Infrastructure.Migrations
                         .HasColumnType("varchar(150)");
 
                     b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CountryIdentifier")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CountryName")
@@ -83,7 +89,13 @@ namespace Rsp.RtsService.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("Imported")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastUpdated")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("StartDate")

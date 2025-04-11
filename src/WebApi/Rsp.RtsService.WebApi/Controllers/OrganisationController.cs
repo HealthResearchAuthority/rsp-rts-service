@@ -9,7 +9,7 @@ namespace Rsp.RtsService.WebApi.Controllers;
 public class OrganisationsController(IOrganisationService orgService) : ControllerBase
 {
     /// <summary>
-    /// Query organisations by complete or partial name.
+    /// Query organisations by complete or partial name..
     /// </summary>
     [HttpGet("searchByName")]
     public async Task<ActionResult<IEnumerable<OrganisationSearchResult>>> SearchByName(string name, int pageSize = 5, string? role = null)

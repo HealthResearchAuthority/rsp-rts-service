@@ -5,10 +5,9 @@ using Rsp.RtsService.Application.Contracts.Repositories;
 using Rsp.RtsService.Domain.Entities;
 using Rsp.RtsService.Infrastructure;
 using Rsp.RtsService.Infrastructure.Repositories;
-using Rsp.RtsService.Services;
 using Shouldly;
 
-namespace Rsp.RtsService.UnitTests.Services.OrganisationRoleServiceTest;
+namespace Rsp.RtsService.UnitTests.Services.OrganisationService;
 
 public class SearchOrganisationByNameAndRole : TestServiceBase
 {
@@ -30,7 +29,7 @@ public class SearchOrganisationByNameAndRole : TestServiceBase
     {
         Mocker.Use<IOrganisationRepository>(_rolesRepository);
 
-        var service = Mocker.CreateInstance<OrganisationService>();
+        var service = Mocker.CreateInstance<RtsService.Services.OrganisationService>();
         var testOrganisations = await TestData.SeedData(_context, generator, records);
 
         var nameToTest = "life";

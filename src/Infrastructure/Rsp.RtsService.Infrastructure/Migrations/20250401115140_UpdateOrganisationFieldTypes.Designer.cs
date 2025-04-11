@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Rsp.RtsService.Infrastructure;
 
@@ -11,9 +12,11 @@ using Rsp.RtsService.Infrastructure;
 namespace Rsp.RtsService.Infrastructure.Migrations
 {
     [DbContext(typeof(RtsDbContext))]
-    partial class RtsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250401115140_UpdateOrganisationFieldTypes")]
+    partial class UpdateOrganisationFieldTypes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -28,6 +31,9 @@ namespace Rsp.RtsService.Infrastructure.Migrations
                         .HasColumnType("varchar(150)");
 
                     b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CountryIdentifier")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CountryName")
@@ -66,6 +72,8 @@ namespace Rsp.RtsService.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Type");
+
                     b.ToTable("Organisation");
                 });
 
@@ -83,7 +91,13 @@ namespace Rsp.RtsService.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("Imported")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastUpdated")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("StartDate")
@@ -101,6 +115,45 @@ namespace Rsp.RtsService.Infrastructure.Migrations
                     b.HasIndex("OrganisationId");
 
                     b.ToTable("OrganisationRole");
+                });
+
+            modelBuilder.Entity("Rsp.RtsService.Domain.Entities.OrganisationTermset", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(150)");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Imported")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastUpdated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("SystemUpdated")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("OrganisationTermset");
+                });
+
+            modelBuilder.Entity("Rsp.RtsService.Domain.Entities.Organisation", b =>
+                {
+                    b.HasOne("Rsp.RtsService.Domain.Entities.OrganisationTermset", "TypeEntity")
+                        .WithMany()
+                        .HasForeignKey("Type")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TypeEntity");
                 });
 
             modelBuilder.Entity("Rsp.RtsService.Domain.Entities.OrganisationRole", b =>
