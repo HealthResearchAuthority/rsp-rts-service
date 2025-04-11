@@ -18,7 +18,7 @@ public class ProbesController(ILogger<ProbesController> logger) : ControllerBase
         }
         catch (Exception ex)
         {
-            logger.LogAsError("SERVER_ERROROR", ex.Message, ex);
+            logger.LogAsError("SERVER_ERROR", ex.Message, ex);
             throw;
         }
     }
@@ -30,11 +30,10 @@ public class ProbesController(ILogger<ProbesController> logger) : ControllerBase
         {
             logger.LogAsInformation("Sucesfully called the READINESS probe.");
             return Ok();
-            ;
         }
         catch (Exception ex)
         {
-            logger.LogAsError("SERVER_ERROROR", ex.Message, ex);
+            logger.LogAsError("SERVER_ERROR", ex.Message, ex);
             throw;
         }
     }
@@ -46,11 +45,10 @@ public class ProbesController(ILogger<ProbesController> logger) : ControllerBase
         {
             logger.LogAsInformation("Sucesfully called the STARTUP probe.");
             return Ok();
-            ;
         }
         catch (Exception ex)
         {
-            logger.LogAsError("SERVER_ERROROR", ex.Message, ex);
+            logger.LogAsError("SERVER_ERROR", ex.Message, ex);
             throw;
         }
     }
