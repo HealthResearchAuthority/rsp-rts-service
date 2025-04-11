@@ -34,6 +34,7 @@
         <PackageReference Include="Rsp.Logging" Version="1.0.11" />
     </ItemGroup>
     <ItemGroup>
+        <ProjectReference Include="..\..\..\..\rsp-service-defaults\src\Rsp.ServiceDefaults\Rsp.ServiceDefaults.csproj" />
         <ProjectReference Include="..\..\Infrastructure\Rsp.RtsService.Infrastructure\Rsp.RtsService.Infrastructure.csproj" />
     </ItemGroup>
     <ItemGroup>
