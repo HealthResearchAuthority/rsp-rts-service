@@ -1,12 +1,12 @@
 name: $(Build.DefinitionName)_$(Build.SourceBranchName)_$(date:yyyyMMdd)$(rev:.r)
-# testing
+
 pool:
   vmImage: "Ubuntu-latest"
 
 trigger:
   branches:
     include:
-    - main
+      - main
   paths: # File paths to include or exclude for triggering a run.
     include: # List of items to include.
     - src/Functions/Rsp.RtsImport/**
@@ -27,14 +27,16 @@ parameters:
     displayName: DevOps Library Branch
     type: string
     default: main
+
   - name: run_sonarcloud_analysis
     displayName: Run Sonar Cloud Analysis
     type: boolean
     default: true
+
   - name: skip_deployment
     displayName: Skip Deployment
     type: boolean
-    default: false
+    default: true
 
 variables:
   - group: 'RTSImportFunction'
@@ -43,16 +45,16 @@ variables:
   - name: solution
     value: "**/*.sln"
   - name: project
-    value: "**/Rsp.RtsImport.csproj"
+    value: "**/*.csproj"
+  - name: projectForContainerBuild
+    value: "Rsp.RtsImport.csproj"
   - name: buildConfiguration
     value: "Release"
   - name: service_connection
-    ${{ if in(parameters.env, 'dev') }}:
+    ${{ if eq(parameters.env, 'dev') }}:
       value: "ARM Dev Connection New"
-    ${{ if in(parameters.env, 'systemtest_auto') }}:
-      value: "ARM Automated Test Connection"  
-    ${{ if in(parameters.env, 'systemtest_manual') }}:
-      value: "ARM Manual Test Connection"
+    ${{ if eq(parameters.env, 'systemtest_auto') }}:
+      value: "ARM Automated Test Connection"
 
 resources:
   repositories:
@@ -68,58 +70,69 @@ resources:
       ref: main
 
 stages:
-  - stage: dev
-    variables: 
-    - group: 'DevelopmentEnvironment'
-    - name: FunctionAppName
-      value: "func-rts-data-sync-dev"
-    condition: eq('${{ parameters.env }}', 'dev') 
+  - stage: Build
+    displayName: "Build Stage"
+    condition: and(eq('${{ parameters.env }}', 'dev'), eq('${{ parameters.skip_deployment }}', 'true'))
     jobs:
       - template: jobs/build.yaml@library
         parameters:
+          run_github_security_scan: false
           sonar_project_key: HealthResearchAuthority_rsp-rts-import-function
           sonar_project_name: healthresearchauthority
           run_sonarcloud_analysis: ${{ parameters.run_sonarcloud_analysis }}
+          install_aspire: true
           service_defaults_repo: service_defaults
-          run_github_security_scan: false
-      - template: jobs/deployFunction.yaml@library
+
+  - stage: dev
+    displayName: "Deploy to Development"
+    variables:
+      - group: 'DevelopmentEnvironment'
+    condition: and(eq('${{ parameters.env }}', 'dev'), eq('${{ parameters.skip_deployment }}', 'false'))
+    jobs:
+      - template: jobs/deploy.yaml@library
         parameters:
-          depends_on: 'Build'
-          appSettings: '[{"name":"AppSettings__AzureAppConfiguration__Endpoint","value":"$(AppConfigurationEndpoint)","slotSetting":false},{"name":"AppSettings__AzureAppConfiguration__IdentityClientID","value":"$(AppConfigurationClientID)","slotSetting":false}]'
+          install_aspire: true
+          service_defaults_repo: service_defaults
 
   - stage: systemtest_auto
-    variables: 
-    - group: 'STAutoEnvironment'
+    displayName: "System Test Auto"
+    variables:
+      - group: 'STAutoEnvironment'
     condition: eq('${{ parameters.env }}', 'systemtest_auto')
     jobs:
-    - job:
-      steps:
-      - script: |
-          echo 'env: system test auto'
+      - job: SystemTestAuto
+        steps:
+          - script: | 
+              echo 'env: system test auto'
 
   - stage: systemtest_manual
-    variables: 
-    - group: 'STManualEnvironment'
-    condition: eq('${{ parameters.env }}', 'systemtest_manual') 
+    displayName: "System Test Manual"
+    variables:
+      - group: 'STManualEnvironment'
+    condition: eq('${{ parameters.env }}', 'systemtest_manual')
     jobs:
     - job:
-      steps:
-      - script: |
-          echo 'env: system test manual'
+      - job: SystemTestManual
+        steps:
+          - script: |
+              echo 'env: system test manual'
 
   - stage: system_integration_test
+    displayName: "System Integration Test"
     jobs:
     - job:
-      steps:
-      - script: |
-          echo 'env: system integration test'
+      - job: IntegrationTest
+        steps:
+          - script: |
+              echo 'env: system integration test'
 
   - stage: uat
+    displayName: "User Acceptance Testing"
     jobs:
     - job:
-      steps:
-      - script: |
-          echo 'env: uat'
+        steps:
+          - script: |
+              echo 'env: uat'
 
   - stage: pre_prod
     jobs:
