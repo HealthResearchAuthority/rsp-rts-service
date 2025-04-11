@@ -110,11 +110,8 @@ stages:
     jobs:
       - template: jobs/deployFunction.yaml@library
         parameters:
-        depends_on: 'Build'
-        appSettings: $(appSettingsJson)
-        install_aspire: true
-        service_defaults_repo: service_defaults
-
+          appSettings: $(appSettingsJson)
+ 
   - stage: systemtest_auto
     variables: 
       - group: 'STAutoEnvironment'
