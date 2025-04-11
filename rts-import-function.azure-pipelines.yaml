@@ -119,7 +119,7 @@ stages:
       - group: 'STAutoEnvironment'
     condition: eq('${{ parameters.env }}', 'systemtest_auto')
     jobs:
-      - job: SystemTestAuto
+      - job: STAutoEnvironment
         steps:
           - script: |
               echo 'env: system test auto'
