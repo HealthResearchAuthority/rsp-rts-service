@@ -55,7 +55,9 @@ variables:
     ${{ if eq(parameters.env, 'dev') }}:
       value: "ARM Dev Connection New"
     ${{ if eq(parameters.env, 'systemtest_auto') }}:
-      value: "ARM Automated Test Connection"
+      value: "ARM Automated Test Connection"  
+    ${{ if eq(parameters.env, 'systemtest_manual') }}:
+      value: "ARM Manual Test Connection"
 
   - name: appSettingsJson
     value: |
