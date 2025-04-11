@@ -57,6 +57,21 @@ variables:
     ${{ if eq(parameters.env, 'systemtest_auto') }}:
       value: "ARM Automated Test Connection"
 
+  - name: appSettingsJson
+    value: |
+      [
+        {
+          "name": "AppSettings__AzureAppConfiguration__Endpoint",
+          "value": "$(AppConfigurationEndpoint)",
+          "slotSetting": false
+        },
+        {
+          "name": "AppSettings__AzureAppConfiguration__IdentityClientID",
+          "value": "$(AppConfigurationClientID)",
+          "slotSetting": false
+        }
+      ]
+
 resources:
   repositories:
     - repository: library
@@ -91,10 +106,10 @@ stages:
       - group: 'DevelopmentEnvironment'
     condition: and(eq('${{ parameters.env }}', 'dev'), eq('${{ parameters.skip_deployment }}', 'false'))
     jobs:
-      - template: jobs/deploy.yaml@library
+      - template: jobs/deployFunction.yaml@library
         parameters:
         depends_on: 'Build'
-        appSettings: '[{"name":"AppSettings__AzureAppConfiguration__Endpoint","value":"$(AppConfigurationEndpoint)","slotSetting":false},{"name":"AppSettings__AzureAppConfiguration__IdentityClientID","value":"$(AppConfigurationClientID)","slotSetting":false}]'
+        appSettings: $(appSettingsJson)
         install_aspire: true
         service_defaults_repo: service_defaults
 
