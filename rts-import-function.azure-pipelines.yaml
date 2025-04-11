@@ -93,8 +93,10 @@ stages:
     jobs:
       - template: jobs/deploy.yaml@library
         parameters:
-          install_aspire: true
-          service_defaults_repo: service_defaults
+        depends_on: 'Build'
+        appSettings: '[{"name":"AppSettings__AzureAppConfiguration__Endpoint","value":"$(AppConfigurationEndpoint)","slotSetting":false},{"name":"AppSettings__AzureAppConfiguration__IdentityClientID","value":"$(AppConfigurationClientID)","slotSetting":false}]'
+        install_aspire: true
+        service_defaults_repo: service_defaults
 
   - stage: systemtest_auto
     displayName: "System Test Auto"
