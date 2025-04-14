@@ -26,6 +26,8 @@ public static class TestData
         entities[1].Name = "life sciences";
         entities[2].Name = "simple life";
 
+        entities.ForEach(x=>x.Status = true);
+
         await context.Organisation.AddRangeAsync(entities);
 
         await context.SaveChangesAsync();
