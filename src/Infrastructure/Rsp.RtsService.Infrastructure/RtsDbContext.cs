@@ -6,6 +6,7 @@ namespace Rsp.RtsService.Infrastructure;
 
 public class RtsDbContext(DbContextOptions<RtsDbContext> options) : DbContext(options)
 {
+    public DbSet<Metadata> Metadata { get; set; }
     public DbSet<Organisation> Organisation { get; set; }
     public DbSet<OrganisationRole> OrganisationRole { get; set; }
 
@@ -15,5 +16,6 @@ public class RtsDbContext(DbContextOptions<RtsDbContext> options) : DbContext(op
 
         modelBuilder.ApplyConfiguration(new OrganisationConfiguration());
         modelBuilder.ApplyConfiguration(new OrganisationRoleConfiguration());
+        modelBuilder.ApplyConfiguration(new MetadataConfiguration());
     }
 }

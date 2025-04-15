@@ -34,28 +34,26 @@ public class OrganisationsService(
             items = items.Where(x => x.Status == RtsRecordStatusOptions.ActiveOrg);
         }
 
-        using (var trans = await db.Database.BeginTransactionAsync())
+        await using var trans = await db.Database.BeginTransactionAsync();
+        db.Database.SetCommandTimeout(500);
+        var bulkConfig = new BulkConfig
         {
-            db.Database.SetCommandTimeout(500);
-            var bulkConfig = new BulkConfig
-            {
-                UseTempDB = true,
-                SetOutputIdentity = false,
-                ConflictOption = ConflictOption.None,
-                BatchSize = 10000,
-                TrackingEntities = false,
-                CalculateStats = true,
-                BulkCopyTimeout = 300
-            };
-            await db.BulkInsertOrUpdateAsync(items, bulkConfig);
-            await trans.CommitAsync();
+            UseTempDB = true,
+            SetOutputIdentity = false,
+            ConflictOption = ConflictOption.None,
+            BatchSize = 10000,
+            TrackingEntities = false,
+            CalculateStats = true,
+            BulkCopyTimeout = 300
+        };
+        await db.BulkInsertOrUpdateAsync(items, bulkConfig);
+        await trans.CommitAsync();
 
-            if (bulkConfig.StatsInfo != null)
-            {
-                // log number of items updated/inserted to the DB
-                result.RecordsUpdated =
-                    bulkConfig.StatsInfo.StatsNumberUpdated + bulkConfig.StatsInfo.StatsNumberInserted;
-            }
+        if (bulkConfig.StatsInfo != null)
+        {
+            // log number of items updated/inserted to the DB
+            result.RecordsUpdated =
+                bulkConfig.StatsInfo.StatsNumberUpdated + bulkConfig.StatsInfo.StatsNumberInserted;
         }
 
         return result;
@@ -74,54 +72,51 @@ public class OrganisationsService(
 
         var result = new DbOperationResult();
 
-        using (var trans = await db.Database.BeginTransactionAsync())
+        await using var trans = await db.Database.BeginTransactionAsync();
+        // Use HashSet for O(1) lookup
+        var organisationIds = new HashSet<string>(
+            await db.Organisation.Select(x => x.Id).ToListAsync()
+        );
+
+        // This is now super fast (O(n))
+        var filteredRoles = items
+            .Where(x => organisationIds.Contains(x.OrganisationId))
+            .ToList(); // Materialize only once for BulkInsertOrUpdateAsync
+
+        if (!filteredRoles.Any())
         {
-            // Use HashSet for O(1) lookup
-            var organisationIds = new HashSet<string>(
-                await db.Organisation.Select(x => x.Id).ToListAsync()
-            );
+            result.RecordsUpdated = 0;
+            return result;
+        }
 
-            // This is now super fast (O(n))
-            var filteredRoles = items
-                .Where(x => organisationIds.Contains(x.OrganisationId))
-                .ToList(); // Materialize only once for BulkInsertOrUpdateAsync
+        db.Database.SetCommandTimeout(500);
 
-            if (!filteredRoles.Any())
-            {
-                result.RecordsUpdated = 0;
-                return result;
-            }
+        var bulkConfig = new BulkConfig
+        {
+            UseTempDB = true,
+            SetOutputIdentity = false,
+            ConflictOption = ConflictOption.Replace, // Ensure both insert and update
+            BatchSize = 10000,
+            CalculateStats = true,
+            BulkCopyTimeout = 300
+        };
 
-            db.Database.SetCommandTimeout(500);
+        await db.BulkInsertOrUpdateAsync(filteredRoles, bulkConfig);
+        await trans.CommitAsync();
 
-            var bulkConfig = new BulkConfig
-            {
-                UseTempDB = true,
-                SetOutputIdentity = false,
-                ConflictOption = ConflictOption.Replace, // Ensure both insert and update
-                BatchSize = 10000,
-                CalculateStats = true,
-                BulkCopyTimeout = 300
-            };
-
-            await db.BulkInsertOrUpdateAsync(filteredRoles, bulkConfig);
-            await trans.CommitAsync();
-
-            if (bulkConfig.StatsInfo != null)
-            {
-                result.RecordsUpdated =
-                    bulkConfig.StatsInfo.StatsNumberUpdated + bulkConfig.StatsInfo.StatsNumberInserted;
-            }
+        if (bulkConfig.StatsInfo != null)
+        {
+            result.RecordsUpdated =
+                bulkConfig.StatsInfo.StatsNumberUpdated + bulkConfig.StatsInfo.StatsNumberInserted;
         }
 
         return result;
     }
 
-
     public async Task<IEnumerable<RtsOrganisationAndRole>> GetOrganisationsAndRoles(string lastUpdated)
     {
-        var pageSize = 500;
-        var maxConcurrency = 10;
+        const int pageSize = 500;
+        const int maxConcurrency = 10;
 
         var result = new ConcurrentBag<RtsOrganisationAndRole>();
         var totalRecords = await FetchPageCountAsync(lastUpdated);
@@ -146,7 +141,6 @@ public class OrganisationsService(
 
         return finalResult;
     }
-
 
     public async Task<int> FetchPageCountAsync(string lastUpdated)
     {
@@ -245,7 +239,7 @@ public class OrganisationsService(
     private async Task<IEnumerable<RtsOrganisationAndRole>> FetchOrganisationAndRolesAsync
     (
         string lastUpdated,
-        int offset, 
+        int offset,
         int count
     )
     {

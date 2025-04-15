@@ -39,10 +39,6 @@
     </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Services\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\..\src\Functions\Rsp.RtsImport\Rsp.RtsImport.csproj" />
     <ProjectReference Include="..\..\..\src\Infrastructure\Rsp.RtsService.Infrastructure\Rsp.RtsService.Infrastructure.csproj" />
   </ItemGroup>

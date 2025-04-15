@@ -7,5 +7,5 @@ public interface IOrganisationRepository
 {
     Task<IEnumerable<Organisation>> SearchByName(ISpecification<Organisation> specification);
 
-    Task<Organisation> GetById(ISpecification<Organisation> specification);
+    Task<Organisation?> GetById(ISpecification<Organisation> specification);
 }

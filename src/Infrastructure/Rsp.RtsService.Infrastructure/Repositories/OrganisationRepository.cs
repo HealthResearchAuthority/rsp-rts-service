@@ -8,7 +8,7 @@ namespace Rsp.RtsService.Infrastructure.Repositories;
 
 public class OrganisationRepository(RtsDbContext context) : IOrganisationRepository
 {
-    public async Task<Organisation> GetById(ISpecification<Organisation> specification)
+    public async Task<Organisation?> GetById(ISpecification<Organisation> specification)
     {
         var record = await context
             .Organisation

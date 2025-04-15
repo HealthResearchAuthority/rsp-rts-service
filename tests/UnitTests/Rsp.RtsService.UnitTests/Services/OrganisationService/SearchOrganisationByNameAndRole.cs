@@ -32,11 +32,11 @@ public class SearchOrganisationByNameAndRole : TestServiceBase
         var service = Mocker.CreateInstance<RtsService.Services.OrganisationService>();
         var testOrganisations = await TestData.SeedData(_context, generator, records);
 
-        var nameToTest = "life";
+        const string nameToTest = "life";
 
         // expectedResults
         var organisations = testOrganisations
-            .Where(x => x.Name.Contains(nameToTest));
+            .Where(x => x?.Name != null && x.Name.Contains(nameToTest));
         var organisationIds = organisations.Select(x => x.Id).ToList();
 
         // actualResults

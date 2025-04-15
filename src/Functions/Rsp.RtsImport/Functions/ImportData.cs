@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
@@ -7,28 +8,45 @@ using Rsp.RtsImport.Application.Contracts;
 
 namespace Rsp.RtsImport.Functions;
 
-public class ImportAllData
-(
+public class ImportAllData(
     ILogger<ImportAllData> logger,
-    IOrganisationImportService importService
+    IOrganisationImportService importService,
+    IMetadataService metadataService
 )
 {
     // function that runs daily at 7AM and checks for updated RTS data.
     [Function("ImportAllData")]
     public async Task<IActionResult> Run(
-        [TimerTrigger("0 0 7 * * *")] TimerInfo myTimer)
+        [TimerTrigger("0 0 7 * * *")] TimerInfo _)
+
     {
         try
         {
-            // get yesterday's date so we only get the delta between today and yesterday
-            var lastUpdated = DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd");
+            var metadata = await metadataService.GetMetaData();
 
-            // order of data retrieval is important due to foreign key constrains
-            // Step 1: Import organisation
-            var updatedOrganisationAndRoles = await importService.ImportOrganisationsAndRoles(lastUpdated);
+            var lastUpdatedDate = string.IsNullOrEmpty(metadata?.LastUpdated)
+                ? DateTime.UtcNow.Date.AddDays(-1) // default to yesterday if missing
+                : DateTime.Parse(metadata.LastUpdated, CultureInfo.InvariantCulture).Date;
+
+            var today = DateTime.UtcNow.Date;
+
+            var totalUpdatedRecords = 0;
+
+            if (lastUpdatedDate < today)
+            {
+                // WILL ONLY RUN FOR DAYS NOT ALREADY RUN
+                for (var date = lastUpdatedDate.AddDays(1); date <= today; date = date.AddDays(1))
+                {
+                    var dateParam = date.ToString("s");
+                    var dailyUpdate = await importService.ImportOrganisationsAndRoles(dateParam);
+                    totalUpdatedRecords += dailyUpdate;
+                }
+            }
+
+            await metadataService.UpdateLastUpdated();
 
             return new OkObjectResult(
-                $"Sucesfully ran the update process. Total records updated: {updatedOrganisationAndRoles}.");
+                $"Successfully ran the update process. Total records updated: {totalUpdatedRecords}.");
         }
         catch (Exception ex)
         {
