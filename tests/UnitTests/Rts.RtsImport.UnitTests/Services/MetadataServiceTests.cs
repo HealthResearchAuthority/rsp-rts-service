@@ -59,4 +59,23 @@ public class MetadataServiceTests : TestServiceBase
             DateTimeStyles.None,
             out _));
     }
+
+    [Fact]
+    public async Task UpdateLastUpdated_Returns_Null_When_No_Metadata_Exists()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<RtsDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
+            .Options;
+
+        var context = new RtsDbContext(options); // No seeding
+
+        var service = new MetadataService(context);
+
+        // Act
+        var result = await service.UpdateLastUpdated();
+
+        // Assert
+        Assert.Null(result);
+    }
 }

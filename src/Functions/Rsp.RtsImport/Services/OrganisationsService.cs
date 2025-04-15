@@ -35,7 +35,6 @@ public class OrganisationsService(
         }
 
         await using var trans = await db.Database.BeginTransactionAsync();
-        db.Database.SetCommandTimeout(500);
         var bulkConfig = new BulkConfig
         {
             UseTempDB = true,
@@ -88,8 +87,6 @@ public class OrganisationsService(
             result.RecordsUpdated = 0;
             return result;
         }
-
-        db.Database.SetCommandTimeout(500);
 
         var bulkConfig = new BulkConfig
         {
@@ -175,7 +172,6 @@ public class OrganisationsService(
             rtsOrganisationRole.RtsRole = [];
             var extensions = entry.Resource.Extension;
 
-
             var subExtensions = extensions
                 .Where(extension => extension.Extension is { Count: > 0 })
                 .Select(extension => extension.Extension);
@@ -236,7 +232,7 @@ public class OrganisationsService(
         }
     }
 
-    private async Task<IEnumerable<RtsOrganisationAndRole>> FetchOrganisationAndRolesAsync
+    public async Task<IEnumerable<RtsOrganisationAndRole>> FetchOrganisationAndRolesAsync
     (
         string lastUpdated,
         int offset,

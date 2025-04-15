@@ -17,7 +17,7 @@ public class ImportAllData(
     // function that runs daily at 7AM and checks for updated RTS data.
     [Function("ImportAllData")]
     public async Task<IActionResult> Run(
-        [TimerTrigger("0 0 7 * * *")] TimerInfo _)
+        [TimerTrigger("0 0 7 * * *")] TimerInfo myTimer)
 
     {
         try
