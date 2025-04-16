@@ -18,22 +18,22 @@ public class RtsAuthHeadersHandler
 {
     private readonly AppSettings _appSettings = appSettingsOptions.Value;
 
-    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
-        CancellationToken cancellationToken)
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        if (!request.RequestUri.AbsolutePath.Contains("auth"))
+        if (request?.RequestUri?.AbsolutePath?.Contains("auth") != true)
         {
             // Build the request body from app settings
-            var requestBody = $"grant_type=client_credentials&=openid%2Bprofile%2Bemail" +
-                              $"&client_id={Uri.EscapeDataString(_appSettings.RtsApiClientId)}" +
-                              $"&client_secret={Uri.EscapeDataString(_appSettings.RtsApiClientSecret)}";
+            var requestBody = "grant_type=client_credentials&=openid%2Bprofile%2Bemail" +
+                              $"&client_id={Uri.EscapeDataString(_appSettings.RtsApiClientId ?? string.Empty)}" +
+                              $"&client_secret={Uri.EscapeDataString(_appSettings.RtsApiClientSecret ?? string.Empty)}";
 
             var token = await authClient.GetBearerTokenAsync(requestBody, cancellationToken);
 
-            if (token?.StatusCode == HttpStatusCode.OK && !string.IsNullOrEmpty(token?.Content?.AccessToken))
+            if (token?.StatusCode == HttpStatusCode.OK &&
+                !string.IsNullOrEmpty(token.Content?.AccessToken))
             {
-                request.Headers.Remove(HeaderNames.Authorization);
-                request.Headers.Add(HeaderNames.Authorization, $"Bearer {token.Content.AccessToken}");
+                request?.Headers.Remove(HeaderNames.Authorization);
+                request?.Headers.Add(HeaderNames.Authorization, $"Bearer {token.Content.AccessToken}");
             }
         }
 

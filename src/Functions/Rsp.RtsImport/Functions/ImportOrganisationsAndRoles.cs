@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Rsp.Logging.Extensions;
 using Rsp.RtsImport.Application.Constants;
 using Rsp.RtsImport.Application.Contracts;
+using static System.Boolean;
 
 namespace Rsp.RtsImport.Functions;
 
@@ -23,22 +24,35 @@ public class ImportOrganisationsAndRoles
 
         try
         {
-            var onlyActive =
-                !string.IsNullOrEmpty(req.Query["onlyActive"]) &&
-                bool.Parse(req.Query["onlyActive"]); // if true then only active records will be imported
-            var importAllRecords = !string.IsNullOrEmpty(req.Query["importAllRecords"]) &&
-                                   bool.Parse(req.Query["importAllRecords"]);
+            var onlyActive = false;
+            if (req?.Query.TryGetValue("onlyActive", out var onlyActiveValue) == true &&
+                TryParse(onlyActiveValue.FirstOrDefault(), out var parsedOnlyActive))
+            {
+                onlyActive = parsedOnlyActive;
+            }
+
+            var importAllRecords = false;
+            if (req?.Query.TryGetValue("importAllRecords", out var importAllRecordsValue) == true &&
+                TryParse(importAllRecordsValue.FirstOrDefault(), out var parsedImportAll))
+            {
+                importAllRecords = parsedImportAll;
+            }
 
             // last modified date should be yesterday's date. This is to ensure that only data changes since yesterday's pull are retrieved
             var lastUpdated = DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd");
 
             // check if there is a the optional _lastUpdated parameter is sent in the request. This overrides yesterday's date.
-            var lastUpdatedParameter = req.Query["_lastUpdated"];
+            var lastUpdatedParameter = req?.Query["_lastUpdated"];
             if (!string.IsNullOrEmpty(lastUpdatedParameter))
             {
                 // check the parameter lastModified date is in the expected format
-                var dateInCorrectFormat = DateTime.TryParseExact(req.Query["_lastUpdated"], "yyyy-MM-dd", null,
-                    DateTimeStyles.None, out _);
+                var dateInCorrectFormat = DateTime.TryParseExact(
+                    req?.Query["_lastUpdated"],
+                    "yyyy-MM-dd",
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.None,
+                    out _);
+
                 if (dateInCorrectFormat)
                 {
                     // use the parameter date instead of the default
