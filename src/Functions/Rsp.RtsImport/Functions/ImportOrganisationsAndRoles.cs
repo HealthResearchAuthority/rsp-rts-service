@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Globalization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,16 +10,16 @@ using static System.Boolean;
 
 namespace Rsp.RtsImport.Functions;
 
-public class ImportOrganisationsAndRoles
-(
+public class ImportOrganisationsAndRoles(
     ILogger<ImportOrganisationsAndRoles> logger,
-    IOrganisationImportService importService
+    IOrganisationImportService importService,
+    IAuditService auditService
 )
 {
     [Function("ImportOrganisationAndRoles")]
     public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequest req)
     {
-        var stopwatch = Stopwatch.StartNew();
+        await auditService.FunctionStarted();
 
         try
         {
@@ -93,9 +92,7 @@ public class ImportOrganisationsAndRoles
         }
         finally
         {
-            stopwatch.Stop();
-            Console.WriteLine(
-                $"Data imported completed in: {stopwatch.Elapsed.Hours:D2}h:{stopwatch.Elapsed.Minutes:D2}m:{stopwatch.Elapsed.Seconds:D2}s");
+            await auditService.FunctionEnded();
         }
     }
 }
