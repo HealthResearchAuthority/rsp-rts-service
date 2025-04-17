@@ -17,7 +17,9 @@ public class AuditServiceTests : TestServiceBase
             .Options;
 
         _context = new RtsDbContext(options);
-        _service = new AuditService(_context);
+        Mocker.Use(_context);
+
+        _service = Mocker.CreateInstance<AuditService>();
     }
 
     [Fact]

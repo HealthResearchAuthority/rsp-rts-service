@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Rsp.Logging.Extensions;
 using Rsp.RtsImport.Application.Constants;
 using Rsp.RtsImport.Application.Contracts;
 using Rsp.RtsService.Domain.Entities;
@@ -7,8 +8,9 @@ using Rsp.RtsService.Infrastructure;
 namespace Rsp.RtsImport.Services;
 
 public class AuditService(
-    RtsDbContext db
-) : IAuditService
+    RtsDbContext db,
+    ILogger<AuditService> logger
+    ) : IAuditService
 {
     public async Task FunctionStarted()
     {
@@ -63,5 +65,7 @@ public class AuditService(
         });
 
         await db.SaveChangesAsync();
+
+        logger.LogAsInformation(description);
     }
 }
