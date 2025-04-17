@@ -11,7 +11,8 @@ namespace Rsp.RtsImport.Functions;
 public class ImportAllData(
     ILogger<ImportAllData> logger,
     IOrganisationImportService importService,
-    IMetadataService metadataService
+    IMetadataService metadataService,
+    IAuditService auditService
 )
 {
     // function that runs daily at 7AM and checks for updated RTS data.
@@ -20,6 +21,8 @@ public class ImportAllData(
         [TimerTrigger("0 0 7 * * *")] TimerInfo myTimer)
 
     {
+        await auditService.FunctionStarted();
+
         try
         {
             var metadata = await metadataService.GetMetaData();
@@ -60,6 +63,10 @@ public class ImportAllData(
             {
                 StatusCode = 500
             };
+        }
+        finally
+        {
+            await auditService.FunctionEnded();
         }
     }
 }
