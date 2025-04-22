@@ -12,6 +12,7 @@ public static class ServicesConfiguration
 {
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
+        services.AddTransient<IAuditService, AuditService>();
         services.AddTransient<IMetadataService, MetadataService>();
         services.AddTransient<IOrganisationService, OrganisationsService>();
         services.AddTransient<IOrganisationImportService, OrganisationImportService>();
