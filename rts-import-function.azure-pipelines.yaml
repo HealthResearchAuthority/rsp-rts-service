@@ -71,6 +71,11 @@ variables:
           "name": "AppSettings__AzureAppConfiguration__IdentityClientID",
           "value": "$(AppConfigurationClientID)",
           "slotSetting": false
+        },
+        {
+          "name": "Values__RtsTimerSchedule",
+          "value": "$(RtsTimerSchedule)",
+          "slotSetting": false
         }
       ]
 
