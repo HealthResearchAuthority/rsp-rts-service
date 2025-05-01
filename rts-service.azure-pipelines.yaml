@@ -63,8 +63,10 @@ variables:
   - name: service_connection
     ${{ if in(parameters.env, 'dev') }}:
       value: "ARM Dev Connection New"
+    ${{ if in(parameters.env, 'systemtest_manual') }}:
+      value: "ARM Manual Test Connection"
     ${{ if in(parameters.env, 'systemtest_auto') }}:
-      value: "ARM Automated Test Connection" 
+      value: "ARM Automated Test Connection"
 
 resources:
   repositories:
