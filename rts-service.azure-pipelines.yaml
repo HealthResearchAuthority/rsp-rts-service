@@ -130,24 +130,22 @@ stages:
             repo: e2e_tests
             tests_run_timeout: ${{ parameters.tests_run_timeout }}
 
-      - ${{ if eq(variables.run_e2e_tests, 'true') }}:
-        - template: jobs/e2e_tests.yaml@library
-          parameters:
-            browser: ${{ parameters.browser }}
-            repo: e2e_tests
-            tests_run_timeout: ${{ parameters.tests_run_timeout }}
-
       - ${{ if eq(variables.run_api_tests, 'true') }}:
         - template: jobs/api_tests.yaml@library
           parameters:
+            browser: ${{ parameters.browser }}
             repo: api_tests
+            tests_run_timeout: ${{ parameters.tests_run_timeout }}
 
   - stage: systemtest_manual
+    variables: 
+    - group: 'STManualEnvironment'
+    condition: eq('${{ parameters.env }}', 'systemtest_manual')
     jobs:
-    - job:
-      steps:
-      - script: |
-          echo 'env: system test manual'
+      - template: jobs/deploy.yaml@library
+        parameters:
+          install_aspire: true
+          service_defaults_repo: service_defaults
 
   - stage: system_integration_test
     jobs:
