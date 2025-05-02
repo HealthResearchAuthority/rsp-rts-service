@@ -115,6 +115,8 @@ stages:
     jobs:
       - template: jobs/deployFunction.yaml@library
         parameters:
+          install_aspire: true
+          service_defaults_repo: service_defaults
           appSettings: $(appSettingsJson)
  
   - stage: systemtest_auto
@@ -124,6 +126,8 @@ stages:
     jobs:
       - template: jobs/deployFunction.yaml@library
         parameters:
+          install_aspire: true
+          service_defaults_repo: service_defaults
           appSettings: $(appSettingsJson)
 
   - stage: systemtest_manual
@@ -133,6 +137,8 @@ stages:
     jobs:
       - template: jobs/deployFunction.yaml@library
         parameters:
+          install_aspire: true
+          service_defaults_repo: service_defaults
           appSettings: $(appSettingsJson)
 
   - stage: system_integration_test
