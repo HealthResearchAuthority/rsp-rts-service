@@ -16,6 +16,7 @@ public static class ServicesConfiguration
         services.AddTransient<IMetadataService, MetadataService>();
         services.AddTransient<IOrganisationService, OrganisationsService>();
         services.AddTransient<IOrganisationImportService, OrganisationImportService>();
+        services.AddTransient<ITokenService, TokenService>();
 
         services.AddTransient<RtsAuthHeadersHandler>();
 

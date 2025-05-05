@@ -1,58 +1,56 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
 using Moq;
-using Refit;
-using Rsp.RtsImport.Application.DTO.Responses;
-using Rsp.RtsImport.Application.ServiceClients;
-using Rsp.RtsImport.Application.Settings;
+using Rsp.RtsImport.Application.Contracts;
 using Rsp.RtsImport.Infrastructure.HttpMessageHandlers;
 using Rts.RtsImport.UnitTests.Helpers;
 using Shouldly;
 
 namespace Rts.RtsImport.UnitTests.Infrastructure.HttpMessageHandlers;
-public class RtsAuthHeadersHandlerTests :TestServiceBase
+
+public class RtsAuthHeadersHandlerTests : TestServiceBase<RtsAuthHeadersHandler>
 {
     [Fact]
-    public async Task SendAsync_AddsBearerToken_WhenNotAuthRequest()
+    public async Task SendAsync_ShouldAddAuthorizationHeader_WhenTokenIsAvailable()
     {
         // Arrange
-        var expectedToken = "fake-token";
+        const string token = "test-token";
 
-        var mockAuthClient = Mocker.GetMock<IRtsAuthorisationServiceClient>();
-        mockAuthClient
-            .Setup(x => x.GetBearerTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))!
-            .ReturnsAsync(new ApiResponse<RtsAuthResponse>(
-                new HttpResponseMessage(HttpStatusCode.OK),
-                new RtsAuthResponse { AccessToken = expectedToken },
-                new RefitSettings()
-            ));
+        Mocker
+            .GetMock<ITokenService>()
+            .Setup(service => service.GetAccessTokenAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(token);
 
-        var appSettings = new AppSettings
-        {
-            RtsApiClientId = "test-client",
-            RtsApiClientSecret = "test-secret"
-        };
-        Mocker.Use(Options.Create(appSettings));
+        Sut.InnerHandler = new TestHttpMessageHandler(); // Simulate downstream handler
 
-        var handler = Mocker.CreateInstance<RtsAuthHeadersHandler>();
-        handler.InnerHandler = new TestHttpMessageHandler(); // Simulate downstream handler
-
-        var client = new HttpClient(handler);
+        var client = new HttpClient(Sut);
         var request = new HttpRequestMessage(HttpMethod.Get, "https://fake.api/rts/data");
 
         // Act
-        var response = await client.SendAsync(request);
+        await client.SendAsync(request, CancellationToken.None);
 
         // Assert
         request.Headers.Authorization.ShouldNotBeNull();
-        request.Headers.Authorization!.Scheme.ShouldBe("Bearer");
-        request.Headers.Authorization.Parameter.ShouldBe(expectedToken);
+        request.Headers.Authorization.Scheme.ShouldBe("Bearer");
+        request.Headers.Authorization.Parameter.ShouldBe(token);
     }
 
+    [Fact]
+    public async Task SendAsync_ShouldNotAddAuthorizationHeader_WhenTokenIsNullOrEmpty()
+    {
+        // Arrange
+        Mocker
+            .GetMock<ITokenService>()
+            .Setup(service => service.GetAccessTokenAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(string.Empty);
 
+        Sut.InnerHandler = new TestHttpMessageHandler(); // Simulate downstream handler
+
+        var client = new HttpClient(Sut);
+        var request = new HttpRequestMessage(HttpMethod.Get, "https://fake.api/rts/data");
+
+        // Act
+        await client.SendAsync(request, CancellationToken.None);
+
+        // Assert
+        request.Headers.Authorization.ShouldBeNull();
+    }
 }

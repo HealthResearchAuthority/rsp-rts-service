@@ -20,7 +20,6 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\..\rsp-service-defaults\src\Rsp.ServiceDefaults\Rsp.ServiceDefaults.csproj" />
 		<ProjectReference Include="..\..\Application\Rsp.RtsService.Application\Rsp.RtsService.Application.csproj" />
 	</ItemGroup>
 

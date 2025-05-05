@@ -1,11 +1,11 @@
 {
-    "profiles": {
-        "Rsp.RtsImport": {
-            "commandName": "Project",
-            "commandLineArgs": "--port 7264",
-            "environmentVariables": {
-                "DOTNET_ENVIRONMENT": "Development"
-            }
-        }
+  "profiles": {
+    "Rsp.RtsImport": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7264",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
     }
+  }
 }
