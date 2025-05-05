@@ -10,14 +10,17 @@ using Rsp.RtsImport.Application.DTO;
 using Rsp.RtsImport.Application.DTO.Responses;
 using Rsp.RtsImport.Application.DTO.Responses.OrganisationsAndRolesDTOs;
 using Rsp.RtsImport.Application.ServiceClients;
+using Rsp.RtsImport.Application.Settings;
 using Rsp.RtsService.Domain.Entities;
 using Rsp.RtsService.Infrastructure;
 
 namespace Rsp.RtsImport.Services;
 
-public class OrganisationsService(
+public class OrganisationsService
+(
     IRtsServiceClient rtsClient,
     RtsDbContext db,
+    AppSettings appSettings,
     ILogger<OrganisationsService> logger
 ) : IOrganisationService
 {
@@ -35,6 +38,9 @@ public class OrganisationsService(
         }
 
         await using var trans = await db.Database.BeginTransactionAsync();
+
+        db.Database.SetCommandTimeout(appSettings.DatabaseCommandTimeout);
+
         var bulkConfig = new BulkConfig
         {
             UseTempDB = true,
@@ -43,7 +49,7 @@ public class OrganisationsService(
             BatchSize = 10000,
             TrackingEntities = false,
             CalculateStats = true,
-            BulkCopyTimeout = 300
+            BulkCopyTimeout = appSettings.BulkCopyTimeout
         };
         await db.BulkInsertOrUpdateAsync(items, bulkConfig);
         await trans.CommitAsync();
@@ -88,6 +94,8 @@ public class OrganisationsService(
             return result;
         }
 
+        db.Database.SetCommandTimeout(appSettings.DatabaseCommandTimeout);
+
         var bulkConfig = new BulkConfig
         {
             UseTempDB = true,
@@ -95,7 +103,7 @@ public class OrganisationsService(
             ConflictOption = ConflictOption.Replace, // Ensure both insert and update
             BatchSize = 10000,
             CalculateStats = true,
-            BulkCopyTimeout = 300
+            BulkCopyTimeout = appSettings.BulkCopyTimeout
         };
 
         await db.BulkInsertOrUpdateAsync(filteredRoles, bulkConfig);
@@ -189,21 +197,24 @@ public class OrganisationsService(
                         case "startDate":
                             startDate = Convert.ToDateTime(roleExtension.ValueDate);
                             break;
+
                         case "status":
                             status = roleExtension.ValueString;
                             break;
+
                         case "identifier":
                             identifier = roleExtension.ValueString;
                             break;
-                        case "scoper":
-                        {
-                            // Split the URL path by '/'
-                            var segments = roleExtension.ValueReference.Reference.Split("/");
 
-                            // Extract the last segment, which is the ID
-                            scoper = int.Parse(segments[^1]);
-                            break;
-                        }
+                        case "scoper":
+                            {
+                                // Split the URL path by '/'
+                                var segments = roleExtension.ValueReference.Reference.Split("/");
+
+                                // Extract the last segment, which is the ID
+                                scoper = int.Parse(segments[^1]);
+                                break;
+                            }
                     }
                 }
 
@@ -247,7 +258,7 @@ public class OrganisationsService(
                 ?.Select(x => TransformOrganisationAndRoles(x))
                 .ToList();
 
-            return allData ??[];
+            return allData ?? [];
         }
         catch (Exception ex)
         {

@@ -11,4 +11,14 @@ public class AppSettings
     public Uri RtsApiBaseUrl { get; set; } = null!;
     public Uri RtsAuthApiBaseUrl { get; set; } = null!;
     public AzureAppConfiguration AzureAppConfiguration { get; set; } = null!;
+
+    /// <summary>
+    /// Database command timeout in seconds
+    /// </summary>
+    public int DatabaseCommandTimeout { get; set; }
+
+    /// <summary>
+    /// Timeout for bulk copy operations in seconds
+    /// </summary>
+    public int BulkCopyTimeout { get; set; }
 }

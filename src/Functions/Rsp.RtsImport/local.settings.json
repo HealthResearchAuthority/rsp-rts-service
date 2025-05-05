@@ -1,22 +1,24 @@
 {
-    "IsEncrypted": false,
-    "Values": {
-        "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-        "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-        "RtsTimerSchedule": "0 0 7 * * *"
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "RtsTimerSchedule": "0 0 7 * * *"
+  },
+  "ConnectionStrings": {
+    "RtsDB": "Server=(localdb)\\mssqllocaldb;Database=RtsService;Trusted_Connection=True;MultipleActiveResultSets=true;Connection Timeout=120"
+  },
+  "AppSettings": {
+    "AzureAppConfiguration": {
+      "Endpoint": "",
+      "IdentityClientID": ""
     },
-    "ConnectionStrings": {
-        "RtsDB": "Server=(localdb)\\mssqllocaldb;Database=RtsService;Trusted_Connection=True;MultipleActiveResultSets=true;Connection Timeout=120"
-    },
-    "AppSettings": {
-        "AzureAppConfiguration": {
-            "Endpoint": "",
-            "IdentityClientID": ""
-        },
-        "AzureVaultUri": "",
-        "RtsApiBaseUrl": "",
-        "RtsApiClientId": "",
-        "RtsApiClientSecret": "",
-        "RtsAuthApiBaseUrl": ""
-    }
+    "AzureVaultUri": "",
+    "RtsApiBaseUrl": "",
+    "RtsApiClientId": "",
+    "RtsApiClientSecret": "",
+    "RtsAuthApiBaseUrl": "",
+    "DatabaseCommandTimeout": 500,
+    "BulkCopyTimeout": 500
+  }
 }

@@ -31,6 +31,7 @@ public static class Program
             .AddEnvironmentVariables();
 
         // register dependencies
+        builder.Services.AddMemoryCache();
         builder.Services.AddServices();
         builder.Services.AddDbContext<RtsDbContext>(options =>
         {
