@@ -168,7 +168,7 @@ public class OrganisationsServiceTests : TestServiceBase
 
         var response = new RtsOrganisationsAndRolesResponse
         {
-            Entry = [ fhirEntry ]
+            Entry = [fhirEntry]
         };
 
         var apiResponse = ApiResponseHelpers.CreateRtsOrganisationsAndRolesResponse(response);
@@ -202,7 +202,7 @@ public class OrganisationsServiceTests : TestServiceBase
 
         var response = new RtsOrganisationsAndRolesResponse
         {
-            Entry =[ fhirEntry ]
+            Entry = [fhirEntry]
         };
 
         ApiResponseHelpers.CreateRtsOrganisationsAndRolesResponse(response);

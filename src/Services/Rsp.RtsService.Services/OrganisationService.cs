@@ -1,22 +1,24 @@
-﻿using Rsp.RtsService.Application.Contracts.Repositories;
+﻿using Mapster;
+using Rsp.RtsService.Application.Contracts.Repositories;
 using Rsp.RtsService.Application.Contracts.Services;
+using Rsp.RtsService.Application.DTOS.Responses;
+using Rsp.RtsService.Application.Enums;
 using Rsp.RtsService.Application.Specifications;
-using Rsp.RtsService.Domain.Entities;
 
 namespace Rsp.RtsService.Services;
 
 public class OrganisationService(IOrganisationRepository repository) : IOrganisationService
 {
-    public async Task<Organisation> GetById(string id)
+    public async Task<GetOrganisationByIdDto> GetById(string id)
     {
         var record = await repository.GetById(new OrganisationSpecification(id));
-        return record;
+        return record.Adapt<GetOrganisationByIdDto>();
     }
 
-    public async Task<IEnumerable<Organisation>> SearchByName(string name, int pageSize, string? role = null)
+    public async Task<IEnumerable<SearchOrganisationByNameDto>> SearchByName(string name, int pageSize, string? role = null, SortOrder sortOrder = SortOrder.Ascending)
     {
-        var records = await repository.SearchByName(new OrganisationSpecification(name, pageSize, role!));
+        var records = await repository.SearchByName(new OrganisationSpecification(name, pageSize, role!, sortOrder));
 
-        return records;
+        return records.Adapt<IEnumerable<SearchOrganisationByNameDto>>();
     }
 }

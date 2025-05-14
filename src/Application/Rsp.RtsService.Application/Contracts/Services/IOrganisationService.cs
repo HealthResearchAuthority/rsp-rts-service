@@ -1,4 +1,5 @@
-﻿using Rsp.RtsService.Domain.Entities;
+﻿using Rsp.RtsService.Application.DTOS.Responses;
+using Rsp.RtsService.Application.Enums;
 
 namespace Rsp.RtsService.Application.Contracts.Services;
 
@@ -8,9 +9,18 @@ namespace Rsp.RtsService.Application.Contracts.Services;
 public interface IOrganisationService
 {
     /// <summary>
-    /// Get organisation by it's id
+    /// Get organisation by its unique identifier.
     /// </summary>
-    Task<Organisation> GetById(string id);
+    /// <param name="id">The unique identifier of the organisation.</param>
+    /// <returns>The organisation entity if found; otherwise, null.</returns>
+    Task<GetOrganisationByIdDto> GetById(string id);
 
-    Task<IEnumerable<Organisation>> SearchByName(string name, int pageSize, string? role = null);
+    /// <summary>
+    /// Searches for organisations by name, with optional role filtering and paging.
+    /// </summary>
+    /// <param name="name">The name or partial name of the organisation to search for.</param>
+    /// <param name="pageSize">The maximum number of results to return.</param>
+    /// <param name="role">Optional role to filter organisations by.</param>
+    /// <returns>A collection of organisation search results.</returns>
+    Task<IEnumerable<SearchOrganisationByNameDto>> SearchByName(string name, int pageSize, string? role = null, SortOrder sortOrder = SortOrder.Ascending);
 }

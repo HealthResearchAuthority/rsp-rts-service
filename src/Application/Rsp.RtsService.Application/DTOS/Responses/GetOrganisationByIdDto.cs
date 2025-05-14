@@ -1,6 +1,6 @@
-﻿namespace Rsp.RtsService.Domain.Entities;
+﻿namespace Rsp.RtsService.Application.DTOS.Responses;
 
-public class Organisation
+public record GetOrganisationByIdDto
 {
     public string Id { get; set; } = null!;
     public string OId { get; set; } = null!;
@@ -14,5 +14,5 @@ public class Organisation
     public DateTime Imported { get; set; }
     public string TypeId { get; set; } = null!;
     public string TypeName { get; set; } = null!;
-    public ICollection<OrganisationRole> Roles { get; set; } = [];
+    public List<OrganisationRoleDto> Roles { get; set; } = [];
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Rsp.RtsService.Application.Contracts.Services;
-using Rsp.RtsService.Domain.Entities;
+using Rsp.RtsService.Application.DTOS.Responses;
+using Rsp.RtsService.Application.Enums;
 
 namespace Rsp.RtsService.WebApi.Controllers;
 
@@ -12,30 +13,30 @@ public class OrganisationsController(IOrganisationService orgService) : Controll
     /// Query organisations by complete or partial name..
     /// </summary>
     [HttpGet("searchByName")]
-    public async Task<ActionResult<IEnumerable<OrganisationSearchResult>>> SearchByName(string name, int pageSize = 5, string? role = null)
+    public async Task<ActionResult<IEnumerable<SearchOrganisationByNameDto>>> SearchByName(string name, int pageSize = 5, string? role = null, string sort = "asc")
     {
         if (name.Length < 3)
         {
             return BadRequest("Name needs to include minimum 3 characters");
         }
 
-        var organisations = await orgService.SearchByName(name, pageSize, role);
+        var sortOrder = sort switch
+        {
+            "asc" => SortOrder.Ascending,
+            "desc" => SortOrder.Descending,
+            _ => SortOrder.Ascending
+        };
 
-        var result = organisations.Select(x =>
-            new OrganisationSearchResult
-            {
-                Id = x.Id,
-                Name = x.Name!
-            });
+        var organisations = await orgService.SearchByName(name, pageSize, role, sortOrder);
 
-        return Ok(result);
+        return Ok(organisations);
     }
 
     /// <summary>
     /// Get a single organisation by ID.
     /// </summary>
     [HttpGet("getById")]
-    public async Task<ActionResult<Organisation>> GetById(string id)
+    public async Task<ActionResult<GetOrganisationByIdDto>> GetById(string id)
     {
         var record = await orgService.GetById(id);
 
