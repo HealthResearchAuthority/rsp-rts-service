@@ -73,7 +73,7 @@ variables:
           "slotSetting": false
         },
         {
-          "name": "Values__RtsTimerSchedule",
+          "name": "RtsTimerSchedule",
           "value": "$(RtsTimerSchedule)",
           "slotSetting": false
         }
