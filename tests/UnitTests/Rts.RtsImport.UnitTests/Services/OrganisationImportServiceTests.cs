@@ -36,7 +36,6 @@ public class OrganisationImportServiceTests : TestServiceBase
             StartDate = DateTime.UtcNow,
             Imported = DateTime.UtcNow,
             SystemUpdated = DateTime.UtcNow,
-            CreatedDate = DateTime.UtcNow
         };
 
         var orgAndRoles = new List<RtsOrganisationAndRole>

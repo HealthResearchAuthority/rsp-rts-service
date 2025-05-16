@@ -120,8 +120,8 @@ public class OrganisationsService
 
     public async Task<IEnumerable<RtsOrganisationAndRole>> GetOrganisationsAndRoles(string lastUpdated)
     {
-        const int pageSize = 500;
-        const int maxConcurrency = 10;
+        const int pageSize = 400;
+        const int maxConcurrency = 8;
 
         var result = new ConcurrentBag<RtsOrganisationAndRole>();
         var totalRecords = await FetchPageCountAsync(lastUpdated);
@@ -185,7 +185,7 @@ public class OrganisationsService
                 .Select(extension => extension.Extension);
             foreach (var roleExtensions in subExtensions)
             {
-                DateTime? startDate = null;
+                DateTime startDate = DateTime.MinValue;
                 var status = "Active";
                 var identifier = "";
                 var scoper = -1;
@@ -226,11 +226,19 @@ public class OrganisationsService
                     StartDate = startDate,
                     SystemUpdated = DateTime.Now,
                     Scoper = scoper,
-                    CreatedDate = DateTime.Now, // Can't find could be
                     Status = status
                 };
 
-                rtsOrganisationRole.RtsRole.Add(rtsRole);
+                // api can contain duplicate data so filter duplicates out here
+                if (rtsOrganisationRole.RtsRole.FirstOrDefault(
+                    x => x.Id == rtsRole.Id &&
+                    x.Scoper == rtsRole.Scoper &&
+                    x.OrganisationId == rtsRole.OrganisationId &&
+                    x.Status == rtsRole.Status &&
+                    x.StartDate == rtsRole.StartDate) == null)
+                {
+                    rtsOrganisationRole.RtsRole.Add(rtsRole);
+                }
             }
 
             rtsOrganisationRole.RtsOrganisation.Roles = rtsOrganisationRole.RtsRole;
@@ -254,16 +262,26 @@ public class OrganisationsService
         {
             var result = await rtsClient.GetOrganisationsAndRoles(lastUpdated, offset, count);
 
-            var allData = result?.Content?.Entry
-                ?.Select(x => TransformOrganisationAndRoles(x))
-                .ToList();
+            if (result.IsSuccessful)
+            {
+                var allData = result?.Content?.Entry
+                    ?.Select(x => TransformOrganisationAndRoles(x))
+                    .ToList();
 
-            return allData ?? [];
+                return allData ?? [];
+            }
+            else
+            {
+                var exception = result.Error;
+
+                logger.LogAsError(exception.StatusCode.ToString(), $"Error fetching data at offset {offset}: {exception.Message}");
+                return [];
+            }
         }
         catch (Exception ex)
         {
             // Optional: Log and rethrow or return empty on failure
-            Console.WriteLine($"Error fetching data at offset {offset}: {ex.Message}");
+            logger.LogAsError("RTS_API_ERROR", $"Error fetching data at offset {offset}: {ex.Message}");
             return [];
         }
     }
