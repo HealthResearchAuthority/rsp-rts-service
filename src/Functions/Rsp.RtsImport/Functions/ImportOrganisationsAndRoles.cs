@@ -17,7 +17,7 @@ public class ImportOrganisationsAndRoles(
 )
 {
     [Function("ImportOrganisationAndRoles")]
-    public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequest req)
+    public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
     {
         await auditService.FunctionStarted();
 

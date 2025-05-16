@@ -1,24 +1,24 @@
 {
-  "IsEncrypted": false,
-  "Values": {
-    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-    "RtsTimerSchedule": "0 0 7 * * *"
-  },
-  "ConnectionStrings": {
-    "RtsDB": "Server=(localdb)\\mssqllocaldb;Database=RtsService;Trusted_Connection=True;MultipleActiveResultSets=true;Connection Timeout=120"
-  },
-  "AppSettings": {
-    "AzureAppConfiguration": {
-      "Endpoint": "",
-      "IdentityClientID": ""
+    "IsEncrypted": false,
+    "Values": {
+        "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+        "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+        "RtsTimerSchedule": "0 0 7 * * *"
     },
-    "AzureVaultUri": "",
-    "RtsApiBaseUrl": "",
-    "RtsApiClientId": "",
-    "RtsApiClientSecret": "",
-    "RtsAuthApiBaseUrl": "",
-    "DatabaseCommandTimeout": 500,
-    "BulkCopyTimeout": 500
-  }
+    "ConnectionStrings": {
+        "RtsDB": "Server=(localdb)\\mssqllocaldb;Database=RtsService2;Trusted_Connection=True;MultipleActiveResultSets=true;Connection Timeout=120"
+    },
+    "AppSettings": {
+        "AzureAppConfiguration": {
+            "Endpoint": "",
+            "IdentityClientID": ""
+        },
+        "AzureVaultUri": "",
+        "RtsApiBaseUrl": "https://oat.fhir.rts.nihr.ac.uk/api",
+        "RtsApiClientId": "aaU7PY4hz_x_RVOyCo09CulPbTca",
+        "RtsApiClientSecret": "f2tHDyVGv2FBkZmmAXbryfL7hr0a",
+        "RtsAuthApiBaseUrl": "https://test.id.nihr.ac.uk",
+        "DatabaseCommandTimeout": 500,
+        "BulkCopyTimeout": 500
+    }
 }
