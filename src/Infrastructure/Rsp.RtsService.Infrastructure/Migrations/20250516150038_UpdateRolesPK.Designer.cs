@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Rsp.RtsService.Infrastructure;
 
@@ -11,9 +12,11 @@ using Rsp.RtsService.Infrastructure;
 namespace Rsp.RtsService.Infrastructure.Migrations
 {
     [DbContext(typeof(RtsDbContext))]
-    partial class RtsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250516150038_UpdateRolesPK")]
+    partial class UpdateRolesPK
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -120,16 +123,16 @@ namespace Rsp.RtsService.Infrastructure.Migrations
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<DateTime>("StartDate")
+                    b.Property<DateTime>("Imported")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("Imported")
+                    b.Property<DateTime?>("StartDate")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime>("SystemUpdated")
                         .HasColumnType("datetime2");
 
-                    b.HasKey("Id", "OrganisationId", "Scoper", "Status", "StartDate");
+                    b.HasKey("Id", "OrganisationId", "Scoper", "Status");
 
                     b.HasIndex("OrganisationId");
 
