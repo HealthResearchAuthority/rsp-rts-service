@@ -6,7 +6,7 @@
         "RtsTimerSchedule": "0 0 7 * * *"
     },
     "ConnectionStrings": {
-        "RtsDB": "Server=(localdb)\\mssqllocaldb;Database=RtsService2;Trusted_Connection=True;MultipleActiveResultSets=true;Connection Timeout=120"
+        "RtsDB": "Server=(localdb)\\mssqllocaldb;Database=RtsService;Trusted_Connection=True;MultipleActiveResultSets=true;Connection Timeout=120"
     },
     "AppSettings": {
         "AzureAppConfiguration": {
@@ -14,10 +14,10 @@
             "IdentityClientID": ""
         },
         "AzureVaultUri": "",
-        "RtsApiBaseUrl": "https://oat.fhir.rts.nihr.ac.uk/api",
-        "RtsApiClientId": "aaU7PY4hz_x_RVOyCo09CulPbTca",
-        "RtsApiClientSecret": "f2tHDyVGv2FBkZmmAXbryfL7hr0a",
-        "RtsAuthApiBaseUrl": "https://test.id.nihr.ac.uk",
+        "RtsApiBaseUrl": "",
+        "RtsApiClientId": "",
+        "RtsApiClientSecret": "",
+        "RtsAuthApiBaseUrl": "",
         "DatabaseCommandTimeout": 500,
         "BulkCopyTimeout": 500
     }
