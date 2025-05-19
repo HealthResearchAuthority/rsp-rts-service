@@ -195,6 +195,30 @@ public class OrganisationsServiceTests : TestServiceBase
     }
 
     [Fact]
+    public async Task FetchOrganisationAndRolesAsync_ReturnsInvalidResponse()
+    {
+        // Arrange
+        var fhirEntry = new RtsFhirEntry();
+        var response = new RtsOrganisationsAndRolesResponse
+        {
+            Entry = [fhirEntry]
+        };
+
+        var apiResponse = ApiResponseHelpers.CreateRtsOrganisationsAndRolesInvalidResponse(response);
+
+        var mockRtsClient = Mocker.GetMock<IRtsServiceClient>();
+        mockRtsClient
+            .Setup(x => x.GetOrganisationsAndRoles(It.IsAny<string>(), 0, 100))
+            .ReturnsAsync(apiResponse);
+
+        // Act
+        var result = (await _service.FetchOrganisationAndRolesAsync("2024-01-01", 0, 100)).ToList();
+
+        // Assert
+        result.ShouldBeEmpty();
+    }
+
+    [Fact]
     public async Task FetchOrganisationAndRolesAsync_ReturnsEmpty()
     {
         // Arrange
@@ -263,6 +287,7 @@ public class OrganisationsServiceTests : TestServiceBase
                             new RtsFhirSubExtension { Url = "startDate", ValueDate = DateTime.UtcNow.ToString("yyyy-MM-dd") },
                             new RtsFhirSubExtension { Url = "status", ValueString = "Active" },
                             new RtsFhirSubExtension { Url = "identifier", ValueString = "ROLE-001" },
+                            new RtsFhirSubExtension { Url = "name", ValueString = "ROLE-001_NAME" },
                             new RtsFhirSubExtension
                             {
                                 Url = "scoper",
@@ -308,6 +333,7 @@ public class OrganisationsServiceTests : TestServiceBase
         role.Id.ShouldBe("ROLE-001");
         role.Status.ShouldBe("Active");
         role.Scoper.ShouldBe(123);
+        role.RoleName.ShouldBe("ROLE-001_NAME");
         role.OrganisationId.ShouldBe("ORG-001");
     }
 
