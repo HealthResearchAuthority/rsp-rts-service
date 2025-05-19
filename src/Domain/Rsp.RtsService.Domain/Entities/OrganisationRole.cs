@@ -4,6 +4,7 @@ public class OrganisationRole
 {
     public string Id { get; set; } = null!;
     public string OrganisationId { get; set; } = null!;
+    public string? RoleName { get; set; }
     public int Scoper { get; set; } = -1!;
     public string Status { get; set; } = null!;
     public DateTime StartDate { get; set; }
