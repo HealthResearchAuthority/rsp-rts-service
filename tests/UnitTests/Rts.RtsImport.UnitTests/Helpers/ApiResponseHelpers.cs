@@ -19,4 +19,19 @@ public static class ApiResponseHelpers
             refitSettings
         );
     }
+
+    public static ApiResponse<RtsOrganisationsAndRolesResponse> CreateRtsOrganisationsAndRolesInvalidResponse(RtsOrganisationsAndRolesResponse content)
+    {
+        var httpResponse = new HttpResponseMessage(HttpStatusCode.BadGateway);
+        var httpRequest = new HttpRequestMessage();
+        var refitSettings = new RefitSettings(); // Can be empty for test
+        var expection = ApiException.Create("ERROR", httpRequest, HttpMethod.Post, httpResponse, refitSettings).Result;
+
+        return new ApiResponse<RtsOrganisationsAndRolesResponse>(
+            httpResponse,
+            content,
+            refitSettings,
+            expection
+        );
+    }
 }
