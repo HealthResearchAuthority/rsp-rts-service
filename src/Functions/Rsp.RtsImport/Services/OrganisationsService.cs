@@ -276,13 +276,11 @@ public class OrganisationsService
 
                 return allData ?? [];
             }
-            else
-            {
-                var exception = result.Error;
 
-                logger.LogAsError(exception.StatusCode.ToString(), $"Error fetching data at offset {offset}: {exception.Message}");
-                return [];
-            }
+            var exception = result.Error;
+
+            logger.LogAsError(exception.StatusCode.ToString(), $"Error fetching data at offset {offset}: {exception.Message}");
+            return [];
         }
         catch (Exception ex)
         {
