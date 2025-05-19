@@ -188,6 +188,7 @@ public class OrganisationsService
                 DateTime startDate = DateTime.MinValue;
                 var status = "Active";
                 var identifier = "";
+                var roleName = "";
                 var scoper = -1;
 
                 foreach (var roleExtension in roleExtensions)
@@ -204,6 +205,10 @@ public class OrganisationsService
 
                         case "identifier":
                             identifier = roleExtension.ValueString;
+                            break;
+
+                        case "name":
+                            roleName = roleExtension.ValueString;
                             break;
 
                         case "scoper":
@@ -226,7 +231,8 @@ public class OrganisationsService
                     StartDate = startDate,
                     SystemUpdated = DateTime.Now,
                     Scoper = scoper,
-                    Status = status
+                    Status = status,
+                    RoleName = roleName
                 };
 
                 // api can contain duplicate data so filter duplicates out here
