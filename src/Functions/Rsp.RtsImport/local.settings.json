@@ -21,3 +21,4 @@
         "DatabaseCommandTimeout": 500,
         "BulkCopyTimeout": 500
     }
+}
