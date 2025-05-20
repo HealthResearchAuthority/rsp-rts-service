@@ -21,4 +21,14 @@ public class AppSettings
     /// Timeout for bulk copy operations in seconds
     /// </summary>
     public int BulkCopyTimeout { get; set; }
+
+    /// <summary>
+    /// Number of records to request from the RTS API
+    /// </summary>
+    public int ApiRequestCount { get; set; }
+
+    /// <summary>
+    /// Maximum number of RTS API requests that can run in parallel
+    /// </summary>
+    public int ApiRequestMaxConcurrency { get; set; }
 }
