@@ -120,8 +120,8 @@ public class OrganisationsService
 
     public async Task<IEnumerable<RtsOrganisationAndRole>> GetOrganisationsAndRoles(string lastUpdated)
     {
-        var pageSize = appSettings.ApiRequestCount;
-        var maxConcurrency = appSettings.ApiRequestMaxConcurrency;
+        int pageSize = appSettings.ApiRequestPageSize != 0 ? appSettings.ApiRequestPageSize : 100;
+        int maxConcurrency = appSettings.ApiRequestMaxConcurrency != 0 ? appSettings.ApiRequestMaxConcurrency : 8;
 
         var result = new ConcurrentBag<RtsOrganisationAndRole>();
         var totalRecords = await FetchPageCountAsync(lastUpdated);

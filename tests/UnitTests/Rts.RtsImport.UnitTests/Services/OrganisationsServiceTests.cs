@@ -315,7 +315,7 @@ public class OrganisationsServiceTests : TestServiceBase
             ));
 
         mockRtsClient
-            .Setup(x => x.GetOrganisationsAndRoles(It.IsAny<string>(), 0, 400))
+            .Setup(x => x.GetOrganisationsAndRoles(It.IsAny<string>(), 0, 100))
             .ReturnsAsync(apiResponse);
 
         // Act

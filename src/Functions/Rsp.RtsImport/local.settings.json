@@ -20,7 +20,7 @@
         "RtsAuthApiBaseUrl": "",
         "DatabaseCommandTimeout": 500,
         "BulkCopyTimeout": 500,
-        "ApiRequestCount": 100,
+        "ApiRequestPageSize": 100,
         "ApiRequestMaxConcurrency": 8
     }
 }
