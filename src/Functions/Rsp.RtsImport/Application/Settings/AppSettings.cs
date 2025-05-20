@@ -25,7 +25,7 @@ public class AppSettings
     /// <summary>
     /// Number of records to request from the RTS API
     /// </summary>
-    public int ApiRequestCount { get; set; }
+    public int ApiRequestPageSize { get; set; }
 
     /// <summary>
     /// Maximum number of RTS API requests that can run in parallel
