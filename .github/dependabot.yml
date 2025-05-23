@@ -1,0 +1,15 @@
+version: 2
+updates:
+  # Application project
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "[Dependabot]"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "application"
+    open-pull-requests-limit: 3
+    target-branch: "main"
