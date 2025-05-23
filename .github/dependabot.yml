@@ -9,6 +9,8 @@ updates:
   # Application project
   - package-ecosystem: "nuget"
     directory: "/"
+    registries: 
+      - azure-artifacts
     schedule:
       interval: "daily"
     commit-message:
