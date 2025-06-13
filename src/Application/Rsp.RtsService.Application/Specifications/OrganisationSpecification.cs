@@ -18,7 +18,7 @@ public class OrganisationSpecification : Specification<Organisation>
             .Include(x => x.Roles);
     }
 
-    public OrganisationSpecification(string name, int pageSize, string roleId, SortOrder sortOrder)
+    public OrganisationSpecification(string name, string roleId, SortOrder sortOrder)
     {
         Query.AsNoTracking();
 
@@ -28,8 +28,7 @@ public class OrganisationSpecification : Specification<Organisation>
         }
 
         Query
-            .Where(x => x.Name != null && x.Name.Contains(name) && x.Status == true)
-            .Take(pageSize);
+            .Where(x => x.Name != null && x.Name.Contains(name) && x.Status == true);
 
         _ = sortOrder switch
         {

@@ -18,13 +18,27 @@ public class OrganisationRepository(RtsDbContext context) : IOrganisationReposit
         return record;
     }
 
-    public async Task<IEnumerable<Organisation>> SearchByName(ISpecification<Organisation> specification)
+    /// <summary>
+    /// Searches for organisations by name using the provided specification and page size.
+    /// </summary>
+    /// <param name="pageSize">The maximum number of records to return.</param>
+    /// <param name="specification">The specification that defines the search criteria.</param>
+    public async Task<(IEnumerable<Organisation>, int)> SearchByName(ISpecification<Organisation> specification, int pageSize)
     {
-        var result = await context
+        /// count the total number of records that match the specification
+        var count = await context
             .Organisation
             .WithSpecification(specification)
+            .CountAsync();
+
+        // only take the specified number of records
+        var organisations = await context
+            .Organisation
+            .WithSpecification(specification)
+            .Take(pageSize)
             .ToListAsync();
 
-        return result;
+        // return the organisations and the count
+        return (organisations, count);
     }
 }

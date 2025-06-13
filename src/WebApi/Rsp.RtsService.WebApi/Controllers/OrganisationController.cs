@@ -13,7 +13,7 @@ public class OrganisationsController(IOrganisationService orgService) : Controll
     /// Query organisations by complete or partial name..
     /// </summary>
     [HttpGet("searchByName")]
-    public async Task<ActionResult<IEnumerable<SearchOrganisationByNameDto>>> SearchByName(string name, int pageSize = 5, string? role = null, string sort = "asc")
+    public async Task<ActionResult<OrganisationSearchResponse>> SearchByName(string name, int pageSize = 5, string? role = null, string sort = "asc")
     {
         if (name.Length < 3)
         {

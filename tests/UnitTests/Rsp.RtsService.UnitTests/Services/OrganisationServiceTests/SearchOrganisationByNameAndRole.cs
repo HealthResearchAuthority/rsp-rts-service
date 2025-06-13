@@ -1,6 +1,7 @@
 ﻿using Ardalis.Specification;
 using AutoFixture;
 using AutoFixture.Xunit2;
+using Bogus;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Moq;
@@ -47,8 +48,8 @@ public class SearchOrganisationByNameAndRole : TestServiceBase<OrganisationServi
         var organisationIds = organisations.Select(x => x.Id).ToList();
 
         // actualResults
-        var actualOrganisations = await service.SearchByName(nameToTest, 10, null);
-        var actualOrganisationIds = actualOrganisations.Select(x => x.Id).ToList();
+        var searchResponse = await service.SearchByName(nameToTest, 10, null);
+        var actualOrganisationIds = searchResponse.Organisations.Select(x => x.Id).ToList();
 
         actualOrganisationIds.ShouldNotBeNull();
         actualOrganisationIds.ShouldBeEquivalentTo(organisationIds); // check results IDs
@@ -71,16 +72,16 @@ public class SearchOrganisationByNameAndRole : TestServiceBase<OrganisationServi
 
         Mocker
             .GetMock<IOrganisationRepository>()
-            .Setup(r => r.SearchByName(It.IsAny<OrganisationSpecification>()))
-            .ReturnsAsync(orgs);
+            .Setup(r => r.SearchByName(It.IsAny<OrganisationSpecification>(), It.IsAny<int>()))
+            .ReturnsAsync((orgs, 2));
 
         // Act
         var result = await Sut.SearchByName(name, pageSize);
 
         // Assert
         result.ShouldNotBeNull();
-        result.ShouldBeAssignableTo<IEnumerable<SearchOrganisationByNameDto>>();
-        result.ShouldBe(expectedDtos, ignoreOrder: false);
+        result.ShouldBeAssignableTo<OrganisationSearchResponse>();
+        result.Organisations.ShouldBe(expectedDtos, ignoreOrder: false);
     }
 
     [Fact]
@@ -92,19 +93,44 @@ public class SearchOrganisationByNameAndRole : TestServiceBase<OrganisationServi
         const string role = "Admin";
         const SortOrder sortOrder = SortOrder.Descending;
 
-        var orgs = new List<Organisation>();
-
         OrganisationSpecification? capturedSpec = null;
+
         Mocker
             .GetMock<IOrganisationRepository>()
-            .Setup(r => r.SearchByName(It.IsAny<OrganisationSpecification>()))
-            .Callback<ISpecification<Organisation>>(spec => capturedSpec = spec as OrganisationSpecification)
-            .ReturnsAsync(orgs);
+            .Setup(r => r.SearchByName(It.IsAny<OrganisationSpecification>(), It.IsAny<int>()))
+            .Callback((ISpecification<Organisation> spec, int _) => capturedSpec = spec as OrganisationSpecification)
+            .ReturnsAsync(([], 0));
 
         // Act
         await Sut.SearchByName(name, pageSize, role, sortOrder);
 
         // Assert
         capturedSpec.ShouldNotBeNull();
+    }
+
+    [Theory, AutoData]
+    public async Task SearchByName_Should_Return_TotalCount_Of_SearchedRecords(Faker<Organisation> faker)
+    {
+        // Arrange
+        Mocker.Use<IOrganisationRepository>(_rolesRepository);
+
+        faker.RuleFor(o => o.Id, f => f.Random.Guid().ToString());
+        faker.RuleFor(o => o.OId, f => f.Random.Guid().ToString());
+        faker.RuleFor(o => o.Type, f => f.Random.Guid().ToString());
+        faker.RuleFor(o => o.TypeId, f => f.Random.Guid().ToString());
+        faker.RuleFor(o => o.TypeName, f => f.Random.Guid().ToString());
+        faker.RuleFor(o => o.Name, f => $"nhs {f.Company.CompanyName()}");
+        faker.RuleFor(o => o.Status, true);
+
+        var service = Mocker.CreateInstance<OrganisationService>();
+        var testOrganisations = await TestData.SeedData(_context, faker.Generate(10));
+
+        const string nameToTest = "nhs";
+
+        // Act
+        var searchResponse = await service.SearchByName(nameToTest, 5, null);
+
+        // Assert
+        searchResponse.TotalCount.ShouldBe(testOrganisations.Count());
     }
 }

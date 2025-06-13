@@ -15,10 +15,21 @@ public class OrganisationService(IOrganisationRepository repository) : IOrganisa
         return record.Adapt<GetOrganisationByIdDto>();
     }
 
-    public async Task<IEnumerable<SearchOrganisationByNameDto>> SearchByName(string name, int pageSize, string? role = null, SortOrder sortOrder = SortOrder.Ascending)
+    /// <summary>
+    /// Searches for organisations by name, with optional role filtering and paging.
+    /// </summary>
+    /// <param name="name">The name or partial name of the organisation to search for.</param>
+    /// <param name="pageSize"> The maximum number of results to return.</param>
+    /// <param name="role">Optional role to filter organisations by.</param>
+    /// <param name="sortOrder" >Sort order for the results, either ascending or descending.</param>
+    public async Task<OrganisationSearchResponse> SearchByName(string name, int pageSize, string? role = null, SortOrder sortOrder = SortOrder.Ascending)
     {
-        var records = await repository.SearchByName(new OrganisationSpecification(name, pageSize, role!, sortOrder));
+        var (organisations, count) = await repository.SearchByName(new OrganisationSpecification(name, role!, sortOrder), pageSize);
 
-        return records.Adapt<IEnumerable<SearchOrganisationByNameDto>>();
+        return new OrganisationSearchResponse
+        {
+            Organisations = organisations.Adapt<IEnumerable<SearchOrganisationByNameDto>>(),
+            TotalCount = count,
+        };
     }
 }
