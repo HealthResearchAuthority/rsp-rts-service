@@ -22,5 +22,5 @@ public interface IOrganisationService
     /// <param name="pageSize">The maximum number of results to return.</param>
     /// <param name="role">Optional role to filter organisations by.</param>
     /// <returns>A collection of organisation search results.</returns>
-    Task<IEnumerable<SearchOrganisationByNameDto>> SearchByName(string name, int pageSize, string? role = null, SortOrder sortOrder = SortOrder.Ascending);
+    Task<OrganisationSearchResponse> SearchByName(string name, int pageSize, string? role = null, SortOrder sortOrder = SortOrder.Ascending);
 }

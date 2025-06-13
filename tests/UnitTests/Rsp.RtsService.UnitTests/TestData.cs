@@ -26,8 +26,22 @@ public static class TestData
         entities[1].Name = "life sciences";
         entities[2].Name = "simple life";
 
-        entities.ForEach(x=>x.Status = true);
+        entities.ForEach(x => x.Status = true);
 
+        await context.Organisation.AddRangeAsync(entities);
+
+        await context.SaveChangesAsync();
+
+        return entities;
+    }
+
+    /// <summary>
+    /// Seeds the data with specified number of records
+    /// </summary>
+    /// <param name="context">Database context</param>
+
+    public static async Task<IEnumerable<Organisation>> SeedData(RtsDbContext context, IEnumerable<Organisation> entities)
+    {
         await context.Organisation.AddRangeAsync(entities);
 
         await context.SaveChangesAsync();
