@@ -37,4 +37,24 @@ public class OrganisationSpecification : Specification<Organisation>
             _ => Query
         };
     }
+
+    public OrganisationSpecification(string roleId, SortOrder sortOrder)
+    {
+        Query.AsNoTracking();
+
+        if (!string.IsNullOrEmpty(roleId))
+        {
+            Query.Where(x => x.Roles.Any(x => x.Id == roleId));
+        }
+
+        Query
+            .Where(x => x.Status == true);
+
+        _ = sortOrder switch
+        {
+            SortOrder.Ascending => Query.OrderBy(x => x.Name),
+            SortOrder.Descending => Query.OrderByDescending(x => x.Name),
+            _ => Query
+        };
+    }
 }

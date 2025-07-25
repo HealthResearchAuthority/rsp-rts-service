@@ -33,6 +33,24 @@ public class OrganisationsController(IOrganisationService orgService) : Controll
     }
 
     /// <summary>
+    /// Get all organisations.
+    /// </summary>
+    [HttpGet("getAll")]
+    public async Task<ActionResult<OrganisationSearchResponse>> GetAll(int pageSize = 5, string? role = null, string sort = "asc")
+    {
+        var sortOrder = sort switch
+        {
+            "asc" => SortOrder.Ascending,
+            "desc" => SortOrder.Descending,
+            _ => SortOrder.Ascending
+        };
+
+        var organisations = await orgService.GetAll(pageSize, role, sortOrder);
+
+        return Ok(organisations);
+    }
+
+    /// <summary>
     /// Get a single organisation by ID.
     /// </summary>
     [HttpGet("getById")]

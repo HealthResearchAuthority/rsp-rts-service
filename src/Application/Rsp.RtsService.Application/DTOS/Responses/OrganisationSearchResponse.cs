@@ -8,7 +8,7 @@ public record OrganisationSearchResponse
     /// <summary>
     /// Collection of organisations that match the search criteria.
     /// </summary>
-    public IEnumerable<SearchOrganisationByNameDto> Organisations { get; set; } = null!;
+    public IEnumerable<SearchOrganisationDto> Organisations { get; set; } = null!;
 
     /// <summary>
     /// Total number of organisations that match the search criteria.

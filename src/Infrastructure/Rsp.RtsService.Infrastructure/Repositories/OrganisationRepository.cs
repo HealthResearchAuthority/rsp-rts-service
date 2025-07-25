@@ -19,11 +19,11 @@ public class OrganisationRepository(RtsDbContext context) : IOrganisationReposit
     }
 
     /// <summary>
-    /// Searches for organisations by name using the provided specification and page size.
+    /// Searches for organisations using the provided specification and page size.
     /// </summary>
     /// <param name="pageSize">The maximum number of records to return.</param>
     /// <param name="specification">The specification that defines the search criteria.</param>
-    public async Task<(IEnumerable<Organisation>, int)> SearchByName(ISpecification<Organisation> specification, int pageSize)
+    public async Task<(IEnumerable<Organisation>, int)> GetBySpecification(ISpecification<Organisation> specification, int pageSize)
     {
         /// count the total number of records that match the specification
         var count = await context
