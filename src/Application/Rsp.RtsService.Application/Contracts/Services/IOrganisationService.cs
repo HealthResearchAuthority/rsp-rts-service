@@ -18,19 +18,21 @@ public interface IOrganisationService
     /// <summary>
     /// Get all organisations
     /// </summary>
-    /// <param name="pageSize">The maximum number of results to return.</param>
+    /// <param name="pageIndex">Index (1-based) of page for paginated results.</param>
+    /// <param name="pageSize">Optional maximum number of results to return.</param>
     /// <param name="role">Optional role to filter organisations by.</param>
     /// <param name="sortOrder" >Sort order for the results, either ascending or descending.</param>
     /// <returns></returns>
-    Task<OrganisationSearchResponse> GetAll(int pageSize, string? role = null, SortOrder sortOrder = SortOrder.Ascending);
+    Task<OrganisationSearchResponse> GetAll(int pageIndex, int? pageSize, string? role = null, SortOrder sortOrder = SortOrder.Ascending);
 
     /// <summary>
     /// Searches for organisations by name, with optional role filtering and paging.
     /// </summary>
     /// <param name="name">The name or partial name of the organisation to search for.</param>
-    /// <param name="pageSize">The maximum number of results to return.</param>
+    /// <param name="pageIndex">Index (1-based) of page for paginated results.</param>
+    /// <param name="pageSize">Optional maximum number of results to return.</param>
     /// <param name="role">Optional role to filter organisations by.</param>
     /// <param name="sortOrder" >Sort order for the results, either ascending or descending.</param>
     /// <returns>A collection of organisation search results.</returns>
-    Task<OrganisationSearchResponse> SearchByName(string name, int pageSize, string? role = null, SortOrder sortOrder = SortOrder.Ascending);
+    Task<OrganisationSearchResponse> SearchByName(string name, int pageIndex, int? pageSize, string? role = null, SortOrder sortOrder = SortOrder.Ascending);
 }

@@ -18,14 +18,15 @@ public class OrganisationService(IOrganisationRepository repository) : IOrganisa
     /// <summary>
     /// Gets all organisations, with optional role filtering and paging.
     /// </summary>
-    /// <param name="pageSize"> The maximum number of results to return.</param>
+    /// <param name="pageIndex">Index (1-based) of page for paginated results.</param>
+    /// <param name="pageSize">Optional maximum number of results to return.</param>
     /// <param name="role">Optional role to filter organisations by.</param>
     /// <param name="sortOrder" >Sort order for the results, either ascending or descending.</param>
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
-    public async Task<OrganisationSearchResponse> GetAll(int pageSize, string? role = null, SortOrder sortOrder = SortOrder.Ascending)
+    public async Task<OrganisationSearchResponse> GetAll(int pageIndex, int? pageSize, string? role = null, SortOrder sortOrder = SortOrder.Ascending)
     {
-        var (organisations, count) = await repository.GetBySpecification(new OrganisationSpecification(role!, sortOrder), pageSize);
+        var (organisations, count) = await repository.GetBySpecification(new OrganisationSpecification(role!, sortOrder), pageIndex, pageSize);
 
         return new OrganisationSearchResponse
         {
@@ -38,12 +39,13 @@ public class OrganisationService(IOrganisationRepository repository) : IOrganisa
     /// Searches for organisations by name, with optional role filtering and paging.
     /// </summary>
     /// <param name="name">The name or partial name of the organisation to search for.</param>
-    /// <param name="pageSize"> The maximum number of results to return.</param>
+    /// <param name="pageIndex">Index (1-based) of page for paginated results.</param>
+    /// <param name="pageSize">Optional maximum number of results to return.</param>
     /// <param name="role">Optional role to filter organisations by.</param>
     /// <param name="sortOrder" >Sort order for the results, either ascending or descending.</param>
-    public async Task<OrganisationSearchResponse> SearchByName(string name, int pageSize, string? role = null, SortOrder sortOrder = SortOrder.Ascending)
+    public async Task<OrganisationSearchResponse> SearchByName(string name, int pageIndex, int? pageSize, string? role = null, SortOrder sortOrder = SortOrder.Ascending)
     {
-        var (organisations, count) = await repository.GetBySpecification(new OrganisationSpecification(name, role!, sortOrder), pageSize);
+        var (organisations, count) = await repository.GetBySpecification(new OrganisationSpecification(name, role!, sortOrder), pageIndex, pageSize);
 
         return new OrganisationSearchResponse
         {

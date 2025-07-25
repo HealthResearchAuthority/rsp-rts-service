@@ -64,17 +64,18 @@ public class GetAllTests : TestServiceBase<OrganisationService>
         const string role = "Admin";
         const SortOrder sortOrder = SortOrder.Descending;
         const int pageSize = 10;
+        const int pageIndex = 0;
 
         OrganisationSpecification? capturedSpec = null;
 
         Mocker
             .GetMock<IOrganisationRepository>()
-            .Setup(r => r.GetBySpecification(It.IsAny<OrganisationSpecification>(), It.IsAny<int>()))
-            .Callback((ISpecification<Organisation> spec, int _) => capturedSpec = spec as OrganisationSpecification)
+            .Setup(r => r.GetBySpecification(It.IsAny<OrganisationSpecification>(), It.IsAny<int>(), It.IsAny<int?>()))
+            .Callback((ISpecification<Organisation> spec, int _, int? _) => capturedSpec = spec as OrganisationSpecification)
             .ReturnsAsync(([], 0));
 
         // Act
-        await Sut.GetAll(pageSize, role, sortOrder);
+        await Sut.GetAll(pageIndex, pageSize, role, sortOrder);
 
         // Assert
         capturedSpec.ShouldNotBeNull();
@@ -85,6 +86,7 @@ public class GetAllTests : TestServiceBase<OrganisationService>
     {
         // Arrange
         int pageSize = 10;
+        int pageIndex = 0;
 
         var orgs = new List<Organisation>
         {
@@ -96,11 +98,11 @@ public class GetAllTests : TestServiceBase<OrganisationService>
 
         Mocker
             .GetMock<IOrganisationRepository>()
-            .Setup(r => r.GetBySpecification(It.IsAny<OrganisationSpecification>(), It.IsAny<int>()))
+            .Setup(r => r.GetBySpecification(It.IsAny<OrganisationSpecification>(), It.IsAny<int>(), It.IsAny<int?>()))
             .ReturnsAsync((orgs, orgs.Count));
 
         // Act
-        var result = await Sut.GetAll(pageSize);
+        var result = await Sut.GetAll(pageIndex, pageSize);
 
         // Assert
         result.ShouldNotBeNull();
@@ -126,9 +128,39 @@ public class GetAllTests : TestServiceBase<OrganisationService>
         var testOrganisations = await TestData.SeedData(_context, faker.Generate(10));
 
         // Act
-        var response = await service.GetAll(5);
+        var response = await service.GetAll(0, 5);
 
         // Assert
         response.TotalCount.ShouldBe(testOrganisations.Count());
+    }
+
+    [Fact]
+    public async Task GetAll_Should_Return_All_Organisations_When_PageSize_Is_Null()
+    {
+        // Arrange
+        int pageIndex = 1;
+        int? pageSize = null;
+
+        var organisations = new List<Organisation>
+        {
+            new() {Id = "1", Name = "Org A", Status = true, Address = "123 Main St", CountryName = "Poland", Type = "Local company"},
+            new() {Id = "2", Name = "Org B", Status = true, Address = "456 Main St", CountryName = "Germany",Type = "International"}
+        };
+
+        var expectedDtos = organisations.Adapt<IEnumerable<SearchOrganisationDto>>();
+
+        Mocker
+            .GetMock<IOrganisationRepository>()
+            .Setup(r => r.GetBySpecification(It.IsAny<OrganisationSpecification>(), pageIndex, pageSize))
+            .ReturnsAsync((organisations, organisations.Count));
+
+        // Act
+        var result = await Sut.GetAll(pageIndex, pageSize);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.Organisations.ShouldNotBeEmpty();
+        result.Organisations.ShouldBe(expectedDtos, ignoreOrder: false);
+        result.TotalCount.ShouldBe(organisations.Count);
     }
 }
