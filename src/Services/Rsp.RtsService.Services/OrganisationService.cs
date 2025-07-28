@@ -22,8 +22,6 @@ public class OrganisationService(IOrganisationRepository repository) : IOrganisa
     /// <param name="pageSize">Optional maximum number of results to return.</param>
     /// <param name="role">Optional role to filter organisations by.</param>
     /// <param name="sortOrder" >Sort order for the results, either ascending or descending.</param>
-    /// <returns></returns>
-    /// <exception cref="NotImplementedException"></exception>
     public async Task<OrganisationSearchResponse> GetAll(int pageIndex, int? pageSize, string? role = null, SortOrder sortOrder = SortOrder.Ascending)
     {
         var (organisations, count) = await repository.GetBySpecification(new OrganisationSpecification(role!, sortOrder), pageIndex, pageSize);
