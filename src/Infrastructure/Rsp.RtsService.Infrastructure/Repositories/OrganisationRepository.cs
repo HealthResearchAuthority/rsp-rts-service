@@ -19,11 +19,12 @@ public class OrganisationRepository(RtsDbContext context) : IOrganisationReposit
     }
 
     /// <summary>
-    /// Searches for organisations by name using the provided specification and page size.
+    /// Searches for organisations using the provided specification and page size.
     /// </summary>
-    /// <param name="pageSize">The maximum number of records to return.</param>
+    /// <param name="pageIndex">Index (1-based) of page for paginated results.</param>
+    /// <param name="pageSize">Optional maximum number of results to return.</param>
     /// <param name="specification">The specification that defines the search criteria.</param>
-    public async Task<(IEnumerable<Organisation>, int)> SearchByName(ISpecification<Organisation> specification, int pageSize)
+    public async Task<(IEnumerable<Organisation>, int)> GetBySpecification(ISpecification<Organisation> specification, int pageIndex, int? pageSize)
     {
         /// count the total number of records that match the specification
         var count = await context
@@ -31,14 +32,23 @@ public class OrganisationRepository(RtsDbContext context) : IOrganisationReposit
             .WithSpecification(specification)
             .CountAsync();
 
-        // only take the specified number of records
-        var organisations = await context
+        // Prepare the query
+        var query = context
             .Organisation
-            .WithSpecification(specification)
-            .Take(pageSize)
-            .ToListAsync();
+            .WithSpecification(specification);
 
-        // return the organisations and the count
+        // Apply pagination if pageSize is specified
+        if (pageSize.HasValue)
+        {
+            query = query
+                .Skip((pageIndex - 1) * pageSize.Value)
+                .Take(pageSize.Value);
+        }
+
+        // Execute the query
+        var organisations = await query.ToListAsync();
+
+        // Return the organisations and the total count
         return (organisations, count);
     }
 }

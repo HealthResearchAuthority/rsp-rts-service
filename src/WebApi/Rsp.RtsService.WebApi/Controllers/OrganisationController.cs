@@ -10,14 +10,28 @@ namespace Rsp.RtsService.WebApi.Controllers;
 public class OrganisationsController(IOrganisationService orgService) : ControllerBase
 {
     /// <summary>
-    /// Query organisations by complete or partial name..
+    /// Query organisations by complete or partial name
     /// </summary>
+    /// <param name="name">The name or partial name of the organisation to search for.</param>
+    /// <param name="pageIndex">1-based index of the page to retrieve. Must be greater than 0.</param>
+    /// <param name="pageSize">Optional number of items per page. If null, all matching organisations are returned. Must be greater than 0 if specified.</param>
+    /// <param name="role">Optional role to filter organisations by.</param>
+    /// <param name="sort">Sort order for the results, either ascending or descending.</param>
+    /// <returns></returns>
     [HttpGet("searchByName")]
-    public async Task<ActionResult<OrganisationSearchResponse>> SearchByName(string name, int pageSize = 5, string? role = null, string sort = "asc")
+    public async Task<ActionResult<OrganisationSearchResponse>> SearchByName(string name, int pageIndex = 1, int? pageSize = null, string? role = null, string sort = "asc")
     {
         if (name.Length < 3)
         {
             return BadRequest("Name needs to include minimum 3 characters");
+        }
+        if (pageIndex <= 0)
+        {
+            return BadRequest("pageIndex must be greater than 0 if specified.");
+        }
+        if (pageSize.HasValue && pageSize <= 0)
+        {
+            return BadRequest("pageSize must be greater than 0 if specified.");
         }
 
         var sortOrder = sort switch
@@ -27,7 +41,39 @@ public class OrganisationsController(IOrganisationService orgService) : Controll
             _ => SortOrder.Ascending
         };
 
-        var organisations = await orgService.SearchByName(name, pageSize, role, sortOrder);
+        var organisations = await orgService.SearchByName(name, pageIndex, pageSize, role, sortOrder);
+
+        return Ok(organisations);
+    }
+
+    /// <summary>
+    /// Retrives a paginated list of all organisations
+    /// </summary>
+    /// <param name="pageIndex">1-based index of the page to retrieve. Must be greater than 0.</param>
+    /// <param name="pageSize">Optional number of items per page. If null, all matching organisations are returned. Must be greater than 0 if specified.</param>
+    /// <param name="role">Optional role to filter organisations by.</param>
+    /// <param name="sort">Sort order for the results, either ascending or descending.</param>
+    /// <returns></returns>
+    [HttpGet("getAll")]
+    public async Task<ActionResult<OrganisationSearchResponse>> GetAll(int pageIndex = 1, int? pageSize = null, string? role = null, string sort = "asc")
+    {
+        if (pageIndex <= 0)
+        {
+            return BadRequest("pageIndex must be greater than 0 if specified.");
+        }
+        if (pageSize.HasValue && pageSize <= 0)
+        {
+            return BadRequest("pageSize must be greater than 0 if specified.");
+        }
+
+        var sortOrder = sort switch
+        {
+            "asc" => SortOrder.Ascending,
+            "desc" => SortOrder.Descending,
+            _ => SortOrder.Ascending
+        };
+
+        var organisations = await orgService.GetAll(pageIndex, pageSize, role, sortOrder);
 
         return Ok(organisations);
     }

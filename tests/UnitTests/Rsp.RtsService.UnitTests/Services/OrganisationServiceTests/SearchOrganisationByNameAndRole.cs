@@ -60,23 +60,24 @@ public class SearchOrganisationByNameAndRole : TestServiceBase<OrganisationServi
     {
         // Arrange
         const string name = "Test";
+        const int pageIndex = 0;
         const int pageSize = 2;
 
         var orgs = new List<Organisation>
         {
-            new() { Id = "1", Name = "Test Org 1" },
-            new() { Id = "2", Name = "Test Org 2" }
+            new() { Id = "1", Name = "Org 1", Status = true, Address = "123 Main St", CountryName = "Poland", Type = "Local company" },
+            new() { Id = "2", Name = "Org 2", Status = true, Address = "125 Main St", CountryName = "England", Type = "Local company" }
         };
 
-        var expectedDtos = orgs.Adapt<IEnumerable<SearchOrganisationByNameDto>>();
+        var expectedDtos = orgs.Adapt<IEnumerable<SearchOrganisationDto>>();
 
         Mocker
             .GetMock<IOrganisationRepository>()
-            .Setup(r => r.SearchByName(It.IsAny<OrganisationSpecification>(), It.IsAny<int>()))
+            .Setup(r => r.GetBySpecification(It.IsAny<OrganisationSpecification>(), It.IsAny<int>(), It.IsAny<int?>()))
             .ReturnsAsync((orgs, 2));
 
         // Act
-        var result = await Sut.SearchByName(name, pageSize);
+        var result = await Sut.SearchByName(name, pageIndex, pageSize);
 
         // Assert
         result.ShouldNotBeNull();
@@ -90,6 +91,7 @@ public class SearchOrganisationByNameAndRole : TestServiceBase<OrganisationServi
         // Arrange
         const string name = "Test";
         const int pageSize = 5;
+        const int pageIndex = 0;
         const string role = "Admin";
         const SortOrder sortOrder = SortOrder.Descending;
 
@@ -97,12 +99,12 @@ public class SearchOrganisationByNameAndRole : TestServiceBase<OrganisationServi
 
         Mocker
             .GetMock<IOrganisationRepository>()
-            .Setup(r => r.SearchByName(It.IsAny<OrganisationSpecification>(), It.IsAny<int>()))
-            .Callback((ISpecification<Organisation> spec, int _) => capturedSpec = spec as OrganisationSpecification)
+            .Setup(r => r.GetBySpecification(It.IsAny<OrganisationSpecification>(), It.IsAny<int>(), It.IsAny<int?>()))
+            .Callback((ISpecification<Organisation> spec, int _, int? _) => capturedSpec = spec as OrganisationSpecification)
             .ReturnsAsync(([], 0));
 
         // Act
-        await Sut.SearchByName(name, pageSize, role, sortOrder);
+        await Sut.SearchByName(name, pageIndex, pageSize, role, sortOrder);
 
         // Assert
         capturedSpec.ShouldNotBeNull();
@@ -128,7 +130,7 @@ public class SearchOrganisationByNameAndRole : TestServiceBase<OrganisationServi
         const string nameToTest = "nhs";
 
         // Act
-        var searchResponse = await service.SearchByName(nameToTest, 5, null);
+        var searchResponse = await service.SearchByName(nameToTest, 5, null, null);
 
         // Assert
         searchResponse.TotalCount.ShouldBe(testOrganisations.Count());
