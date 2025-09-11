@@ -58,6 +58,8 @@ variables:
       value: "ARM Automated Test Connection"  
     ${{ if eq(parameters.env, 'systemtest_manual') }}:
       value: "ARM Manual Test Connection"
+    ${{ if in(parameters.env, 'uat') }}:
+        value: "ARM UAT Connection"
 
   - name: appSettingsJson
     value: |
@@ -156,12 +158,17 @@ stages:
               echo 'env: system integration test'
 
   - stage: uat
-    displayName: "User Acceptance Testing"
+    variables: 
+      - group: 'UATEnvironment'
+      - name: FunctionAppName
+        value: "func-rts-data-sync-uat"
+    condition: eq('${{ parameters.env }}', 'uat')
     jobs:
-      - job: UAT
-        steps:
-          - script: |
-              echo 'env: uat'
+      - template: jobs/deployFunction.yaml@library
+        parameters:
+          install_aspire: true
+          service_defaults_repo: service_defaults
+          appSettings: $(appSettingsJson)
 
   - stage: pre_prod
     displayName: "Pre-Production"
