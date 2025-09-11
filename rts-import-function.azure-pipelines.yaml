@@ -149,14 +149,6 @@ stages:
           service_defaults_repo: service_defaults
           appSettings: $(appSettingsJson)
 
-  - stage: system_integration_test
-    displayName: "System Integration Test"
-    jobs:
-      - job: IntegrationTest
-        steps:
-          - script: |
-              echo 'env: system integration test'
-
   - stage: uat
     variables: 
       - group: 'UATEnvironment'
