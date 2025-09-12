@@ -1,7 +1,10 @@
+using System.Configuration;
 using System.Diagnostics.CodeAnalysis;
+using Azure.Identity;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.FeatureManagement;
@@ -22,6 +25,8 @@ public static class Program
         var builder = FunctionsApplication.CreateBuilder(args);
         builder.ConfigureFunctionsWebApplication();
 
+        var configuration = builder.Configuration;
+
         var config = builder.Configuration;
 
         config
@@ -30,14 +35,42 @@ public static class Program
             .AddUserSecrets<UserSecretsAnchor>()
             .AddEnvironmentVariables();
 
+        if (!builder.Environment.IsDevelopment())
+        {
+            var azureAppConfigSection = configuration.GetSection(nameof(RtsService.Application.Settings.AppSettings));
+            var azureAppConfiguration = azureAppConfigSection.Get<RtsService.Application.Settings.AppSettings>();
+
+            // Load configuration from Azure App Configuration
+            builder.Configuration.AddAzureAppConfiguration(options =>
+                {
+                    options.Connect
+                        (
+                            new Uri(azureAppConfiguration!.AzureAppConfiguration.Endpoint),
+                            new ManagedIdentityCredential(azureAppConfiguration.AzureAppConfiguration.IdentityClientID)
+                        )
+                        .Select(KeyFilter.Any)
+                        .Select(KeyFilter.Any, RtsService.Application.Settings.AppSettings.ServiceLabel)
+                        .ConfigureRefresh(refreshOptions =>
+                            refreshOptions
+                                .Register("AppSettings:Sentinel",
+                                    RtsService.Application.Settings.AppSettings.ServiceLabel, refreshAll: true)
+                                .SetRefreshInterval(new TimeSpan(0, 0, 15))
+                        );
+                }
+            );
+
+            builder.Services.AddAzureAppConfiguration();
+        }
+
         // register dependencies
         builder.Services.AddMemoryCache();
         builder.Services.AddServices();
         builder.Services.AddDbContext<RtsDbContext>(options =>
         {
             options.EnableSensitiveDataLogging();
-            options.UseSqlServer(config.GetConnectionString("RTSDatabaseConnection"));
+            options.UseSqlServer(configuration.GetConnectionString("RTSDatabaseConnection"));
         });
+
 
         builder.Services.AddHttpContextAccessor();
 
