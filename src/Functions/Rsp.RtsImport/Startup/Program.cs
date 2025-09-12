@@ -36,7 +36,7 @@ public static class Program
         builder.Services.AddDbContext<RtsDbContext>(options =>
         {
             options.EnableSensitiveDataLogging();
-            options.UseSqlServer(config.GetConnectionString("RtsDB"));
+            options.UseSqlServer(config.GetConnectionString("RTSDatabaseConnection"));
         });
 
         builder.Services.AddHttpContextAccessor();
