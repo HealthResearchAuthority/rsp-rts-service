@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Rsp.RtsImport.Services;
 using Rsp.RtsService.Domain.Entities;
 using Rsp.RtsService.Infrastructure;
+using Shouldly;
 
 namespace Rts.RtsImport.UnitTests.Services;
 
@@ -61,14 +62,22 @@ public class MetadataServiceTests : TestServiceBase
     }
 
     [Fact]
-    public async Task UpdateLastUpdated_Returns_Null_When_No_Metadata_Exists()
+    public async Task UpdateLastUpdated_Creates_New_Record_When_None_Exists()
     {
         // Arrange
         var options = new DbContextOptionsBuilder<RtsDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
             .Options;
 
-        var context = new RtsDbContext(options); // No seeding
+        using var context = new RtsDbContext(options);
+
+        // Ensure no Metadata exists
+        var existingRecords = context.Metadata.ToList();
+        if (existingRecords.Any())
+        {
+            context.Metadata.RemoveRange(existingRecords);
+            await context.SaveChangesAsync();
+        }
 
         var service = new MetadataService(context);
 
@@ -76,6 +85,9 @@ public class MetadataServiceTests : TestServiceBase
         var result = await service.UpdateLastUpdated();
 
         // Assert
-        Assert.Null(result);
+        result.ShouldNotBeNull();
+        result.LastUpdated.ShouldNotBeNullOrEmpty();
+        context.Metadata.Count().ShouldBe(1);
     }
+
 }

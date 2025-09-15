@@ -18,7 +18,7 @@ public class ImportAllData(
     // function that runs daily at 7AM and checks for updated RTS data.
     [Function("ImportAllData")]
     public async Task<IActionResult> Run(
-        [TimerTrigger("%RtsTimerSchedule%", RunOnStartup = false, UseMonitor = true)] TimerInfo myTimer)
+        [TimerTrigger("%RtsTimerSchedule%", RunOnStartup = true, UseMonitor = true)] TimerInfo myTimer)
 
     {
         await auditService.FunctionStarted();
@@ -27,23 +27,29 @@ public class ImportAllData(
         {
             var metadata = await metadataService.GetMetaData();
 
-            var lastUpdatedDate = string.IsNullOrEmpty(metadata?.LastUpdated)
-                ? DateTime.UtcNow.Date.AddDays(-1) // default to yesterday if missing
-                : DateTime.Parse(metadata.LastUpdated, CultureInfo.InvariantCulture).Date;
-
             var today = DateTime.UtcNow.Date;
-
             var totalUpdatedRecords = 0;
 
-            if (lastUpdatedDate < today)
+            if (!string.IsNullOrEmpty(metadata?.LastUpdated))
             {
-                // WILL ONLY RUN FOR DAYS NOT ALREADY RUN
-                for (var date = lastUpdatedDate.AddDays(1); date <= today; date = date.AddDays(1))
+                var lastUpdatedDate = DateTime.Parse(metadata.LastUpdated, CultureInfo.InvariantCulture).Date;
+
+                if (lastUpdatedDate < today)
                 {
-                    var dateParam = date.ToString("s");
-                    var dailyUpdate = await importService.ImportOrganisationsAndRoles(dateParam);
-                    totalUpdatedRecords += dailyUpdate;
+                    // Run for all missing days since last update
+                    for (var date = lastUpdatedDate.AddDays(1); date <= today; date = date.AddDays(1))
+                    {
+                        var dateParam = date.ToString("s");
+                        var dailyUpdate = await importService.ImportOrganisationsAndRoles(dateParam);
+                        totalUpdatedRecords += dailyUpdate;
+                    }
                 }
+            }
+            else
+            {
+                // No LastUpdated -> run with null param
+                var dailyUpdate = await importService.ImportOrganisationsAndRoles(null);
+                totalUpdatedRecords += dailyUpdate;
             }
 
             await metadataService.UpdateLastUpdated();
