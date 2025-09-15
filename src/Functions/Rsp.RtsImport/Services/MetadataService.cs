@@ -14,18 +14,27 @@ public class MetadataService(
         return record;
     }
 
-    public async Task<Metadata?> UpdateLastUpdated()
+    public async Task<Metadata> UpdateLastUpdated()
     {
         var record = await db.Metadata.FirstOrDefaultAsync();
 
         if (record == null)
         {
-            return record;
+            record = new Metadata
+            {
+                LastUpdated = DateTime.UtcNow.ToString("s")
+            };
+
+            db.Metadata.Add(record);
+        }
+        else
+        {
+            record.LastUpdated = DateTime.UtcNow.ToString("s");
+            db.Metadata.Update(record);
         }
 
-        record.LastUpdated = DateTime.UtcNow.ToString("s");
         await db.SaveChangesAsync();
-
         return record;
     }
+
 }
