@@ -1,10 +1,7 @@
-using System.Configuration;
 using System.Diagnostics.CodeAnalysis;
-using Azure.Identity;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.FeatureManagement;
@@ -29,13 +26,13 @@ public static class Program
         if (builder.Environment.IsDevelopment())
         {
             builder.Configuration
-                .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
-                .AddUserSecrets<UserSecretsAnchor>(optional: true);
+                .AddJsonFile("local.settings.json", true, true)
+                .AddUserSecrets<UserSecretsAnchor>(true);
         }
 
         // 2) Common config
         builder.Configuration
-            .AddJsonFile("featuresettings.json", optional: true, reloadOnChange: true)
+            .AddJsonFile("featuresettings.json", true, true)
             .AddEnvironmentVariables();
 
         // 3) Attach Azure App Configuration in non-Dev
@@ -49,19 +46,9 @@ public static class Program
         builder.Services.AddServices();
         builder.Services.AddDbContext<RtsDbContext>(options =>
         {
-            var cs = builder.Configuration.GetConnectionString("RTSDatabaseConnection")
-                     ?? builder.Configuration["ConnectionStrings:RTSDatabaseConnection"]
-                     ?? builder.Configuration["RTSDatabaseConnection"];
-
-            if (string.IsNullOrWhiteSpace(cs))
-            {
-                throw new InvalidOperationException("Missing connection string 'RTSDatabaseConnection'.");
-            }
-
             options.EnableSensitiveDataLogging();
-            options.UseSqlServer(cs);
+            options.UseSqlServer(builder.Configuration.GetConnectionString("RTSDatabaseConnection"));
         });
-
 
         builder.Services.AddHttpContextAccessor();
 
@@ -70,7 +57,7 @@ public static class Program
 
         builder.Services.Configure<AppSettings>(builder.Configuration.GetSection(nameof(AppSettings)));
         var appSettings = builder.Configuration.GetSection(nameof(AppSettings)).Get<AppSettings>()!;
-        
+
         builder.Services.AddHttpClients(appSettings);
 
         // register configurationSettings as singleton
