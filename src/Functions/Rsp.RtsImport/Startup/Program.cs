@@ -25,41 +25,23 @@ public static class Program
         var builder = FunctionsApplication.CreateBuilder(args);
         builder.ConfigureFunctionsWebApplication();
 
-        var configuration = builder.Configuration;
+        // 1) Development-only local config
+        if (builder.Environment.IsDevelopment())
+        {
+            builder.Configuration
+                .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
+                .AddUserSecrets<UserSecretsAnchor>(optional: true);
+        }
 
-        var config = builder.Configuration;
-
-        config
-            .AddJsonFile("local.settings.json", true)
-            .AddJsonFile("featuresettings.json", true, true)
-            .AddUserSecrets<UserSecretsAnchor>()
+        // 2) Common config
+        builder.Configuration
+            .AddJsonFile("featuresettings.json", optional: true, reloadOnChange: true)
             .AddEnvironmentVariables();
 
+        // 3) Attach Azure App Configuration in non-Dev
         if (!builder.Environment.IsDevelopment())
         {
-            var azureAppConfigSection = configuration.GetSection(nameof(RtsService.Application.Settings.AppSettings));
-            var azureAppConfiguration = azureAppConfigSection.Get<RtsService.Application.Settings.AppSettings>();
-
-            // Load configuration from Azure App Configuration
-            builder.Configuration.AddAzureAppConfiguration(options =>
-                {
-                    options.Connect
-                        (
-                            new Uri(azureAppConfiguration!.AzureAppConfiguration.Endpoint),
-                            new ManagedIdentityCredential(azureAppConfiguration.AzureAppConfiguration.IdentityClientID)
-                        )
-                        .Select(KeyFilter.Any)
-                        .Select(KeyFilter.Any, RtsService.Application.Settings.AppSettings.ServiceLabel)
-                        .ConfigureRefresh(refreshOptions =>
-                            refreshOptions
-                                .Register("AppSettings:Sentinel",
-                                    RtsService.Application.Settings.AppSettings.ServiceLabel, refreshAll: true)
-                                .SetRefreshInterval(new TimeSpan(0, 0, 15))
-                        );
-                }
-            );
-
-            builder.Services.AddAzureAppConfiguration();
+            builder.Services.AddAzureAppConfiguration(builder.Configuration);
         }
 
         // register dependencies
@@ -67,8 +49,17 @@ public static class Program
         builder.Services.AddServices();
         builder.Services.AddDbContext<RtsDbContext>(options =>
         {
+            var cs = builder.Configuration.GetConnectionString("RTSDatabaseConnection")
+                     ?? builder.Configuration["ConnectionStrings:RTSDatabaseConnection"]
+                     ?? builder.Configuration["RTSDatabaseConnection"];
+
+            if (string.IsNullOrWhiteSpace(cs))
+            {
+                throw new InvalidOperationException("Missing connection string 'RTSDatabaseConnection'.");
+            }
+
             options.EnableSensitiveDataLogging();
-            options.UseSqlServer(configuration.GetConnectionString("RTSDatabaseConnection"));
+            options.UseSqlServer(cs);
         });
 
 
@@ -76,18 +67,10 @@ public static class Program
 
         builder.Services.AddHeaderPropagation(options => options.Headers.Add(RequestHeadersKeys.CorrelationId));
 
-        if (!builder.Environment.IsDevelopment())
-        {
-            // Load configuration from Azure App Configuration
-            builder.Services.AddAzureAppConfiguration(config);
-        }
 
         builder.Services.Configure<AppSettings>(builder.Configuration.GetSection(nameof(AppSettings)));
-
-        // instantiate the appsettings class and assign the values from the config file
-        var appSettingsSection = config.GetSection(nameof(AppSettings));
-        var appSettings = appSettingsSection.Get<AppSettings>()!;
-
+        var appSettings = builder.Configuration.GetSection(nameof(AppSettings)).Get<AppSettings>()!;
+        
         builder.Services.AddHttpClients(appSettings);
 
         // register configurationSettings as singleton
@@ -98,7 +81,7 @@ public static class Program
         // not recommended to call services.BuildServiceProvider and retrieve IFeatureManager
         // via provider. Instead, the following approach is recommended by creating FeatureManager
         // with ConfigurationFeatureDefinitionProvider using the existing configuration.
-        var featureManager = new FeatureManager(new ConfigurationFeatureDefinitionProvider(config));
+        var featureManager = new FeatureManager(new ConfigurationFeatureDefinitionProvider(builder.Configuration));
 
         if (await featureManager.IsEnabledAsync(Features.InterceptedLogging))
         {
