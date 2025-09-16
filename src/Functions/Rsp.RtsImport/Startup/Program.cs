@@ -1,6 +1,7 @@
 using System.Configuration;
 using System.Diagnostics.CodeAnalysis;
 using Azure.Identity;
+using Castle.Core.Configuration;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -49,19 +50,9 @@ public static class Program
         builder.Services.AddServices();
         builder.Services.AddDbContext<RtsDbContext>(options =>
         {
-            var cs = builder.Configuration.GetConnectionString("RTSDatabaseConnection")
-                     ?? builder.Configuration["ConnectionStrings:RTSDatabaseConnection"]
-                     ?? builder.Configuration["RTSDatabaseConnection"];
-
-            if (string.IsNullOrWhiteSpace(cs))
-            {
-                throw new InvalidOperationException("Missing connection string 'RTSDatabaseConnection'.");
-            }
-
-            options.EnableSensitiveDataLogging();
-            options.UseSqlServer(cs);
+                options.EnableSensitiveDataLogging();
+                options.UseSqlServer(builder.Configuration.GetConnectionString("RTSDatabaseConnection"));
         });
-
 
         builder.Services.AddHttpContextAccessor();
 
