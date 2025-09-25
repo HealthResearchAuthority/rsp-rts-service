@@ -32,6 +32,9 @@ builder.AddServiceDefaults();
 var services = builder.Services;
 var configuration = builder.Configuration;
 
+var appSettingsSection = configuration.GetSection(nameof(AppSettings));
+var appSettings = appSettingsSection.Get<AppSettings>();
+
 if (!builder.Environment.IsDevelopment())
 {
     services.AddLogging(builder => builder.AddConsole());
@@ -39,23 +42,23 @@ if (!builder.Environment.IsDevelopment())
 
 if (!builder.Environment.IsDevelopment())
 {
-    var azureAppConfigSection = configuration.GetSection(nameof(AppSettings));
-    var azureAppConfiguration = azureAppConfigSection.Get<AppSettings>();
-
     // Load configuration from Azure App Configuration
     builder.Configuration.AddAzureAppConfiguration(
         options =>
-        {
-            options.Connect
+    {
+            var credentials = new ManagedIdentityCredential(appSettings!.AzureAppConfiguration.IdentityClientID);
+
+        options.Connect
             (
-                new Uri(azureAppConfiguration!.AzureAppConfiguration.Endpoint),
-                new ManagedIdentityCredential(azureAppConfiguration.AzureAppConfiguration.IdentityClientID)
+                new Uri(appSettings.AzureAppConfiguration.Endpoint),
+                credentials
             )
             .Select(KeyFilter.Any)
             .Select(KeyFilter.Any, AppSettings.ServiceLabel)
+            .ConfigureKeyVault(kv => kv.SetCredential(credentials))
             .ConfigureRefresh(refreshOptions =>
                 refreshOptions
-                .Register("AppSettings:Sentinel", AppSettings.ServiceLabel, refreshAll: true)
+                    .Register("AppSettings:Sentinel", AppSettings.ServiceLabel, refreshAll: true)
                 .SetRefreshInterval(new TimeSpan(0, 0, 15))
             );
         }
@@ -81,8 +84,6 @@ builder
 // uncomment the following line
 // builder.AddServiceDefaults()
 
-var appSettingsSection = configuration.GetSection(nameof(AppSettings));
-var appSettings = appSettingsSection.Get<AppSettings>();
 
 // adds sql server database context
 services.AddDatabase(configuration);
