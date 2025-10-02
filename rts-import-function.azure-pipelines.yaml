@@ -169,20 +169,26 @@ stages:
   - stage: pre_prod
     variables: 
     - group: 'PreProdEnvironment'
+    - name: FunctionAppName
+      value: "func-rts-data-sync-preprod"
     condition: eq('${{ parameters.env }}', 'pre_prod')
     jobs:
-      - template: jobs/deploy.yaml@library
+      - template: jobs/deployFunction.yaml@library
         parameters:
           install_aspire: true
           service_defaults_repo: service_defaults
+          appSettings: $(appSettingsJson)
 
   - stage: production
     variables: 
     - group: 'ProductionEnvironment'
+    - name: FunctionAppName
+      value: "func-rts-data-sync-production"
     condition: eq('${{ parameters.env }}', 'production')
     jobs:
-      - template: jobs/deploy.yaml@library
+      - template: jobs/deployFunction.yaml@library
         parameters:
           install_aspire: true
           service_defaults_repo: service_defaults
+          appSettings: $(appSettingsJson)
 
