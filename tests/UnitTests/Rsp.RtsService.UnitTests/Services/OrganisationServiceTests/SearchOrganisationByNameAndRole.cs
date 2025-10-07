@@ -25,7 +25,7 @@ public class SearchOrganisationByNameAndRole : TestServiceBase<OrganisationServi
     public SearchOrganisationByNameAndRole()
     {
         var options = new DbContextOptionsBuilder<RtsDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString("N")).Options;
+            .UseInMemoryDatabase(Guid.NewGuid().ToString("N")).Options;
 
         _context = new RtsDbContext(options);
         _rolesRepository = new OrganisationRepository(_context);
@@ -35,6 +35,7 @@ public class SearchOrganisationByNameAndRole : TestServiceBase<OrganisationServi
     [InlineAutoData(5)]
     public async Task Returns_Organisations_For_Name(int records, Generator<Organisation> generator)
     {
+        // Use real repo
         Mocker.Use<IOrganisationRepository>(_rolesRepository);
 
         var service = Mocker.CreateInstance<OrganisationService>();
@@ -44,10 +45,9 @@ public class SearchOrganisationByNameAndRole : TestServiceBase<OrganisationServi
 
         // expectedResults
         var organisations = testOrganisations.Where(x => x?.Name != null && x.Name.Contains(nameToTest));
-
         var organisationIds = organisations.Select(x => x.Id).ToList();
 
-        // actualResults
+        // actualResults (new signature supports optional extras with defaults)
         var searchResponse = await service.SearchByName(nameToTest, 10, null);
         var actualOrganisationIds = searchResponse.Organisations.Select(x => x.Id).ToList();
 
@@ -60,7 +60,7 @@ public class SearchOrganisationByNameAndRole : TestServiceBase<OrganisationServi
     {
         // Arrange
         const string name = "Test";
-        const int pageIndex = 0;
+        const int pageIndex = 1;   // service normalizes anyway, but keep it valid
         const int pageSize = 2;
 
         var orgs = new List<Organisation>
@@ -76,7 +76,7 @@ public class SearchOrganisationByNameAndRole : TestServiceBase<OrganisationServi
             .Setup(r => r.GetBySpecification(It.IsAny<OrganisationSpecification>(), It.IsAny<int>(), It.IsAny<int?>()))
             .ReturnsAsync((orgs, 2));
 
-        // Act
+        // Act (new signature ignores extra params if omitted)
         var result = await Sut.SearchByName(name, pageIndex, pageSize);
 
         // Assert
@@ -91,23 +91,37 @@ public class SearchOrganisationByNameAndRole : TestServiceBase<OrganisationServi
         // Arrange
         const string name = "Test";
         const int pageSize = 5;
-        const int pageIndex = 0;
+        const int pageIndex = 1;
         const string role = "Admin";
-        const SortOrder sortOrder = SortOrder.Descending;
+
+        // NEW: use countries/sortField/sortDirection (no SortOrder enum now)
+        var countries = new[] { "England", "Wales" };
+        const string sortField = "name";
+        const string sortDirection = "desc";
 
         OrganisationSpecification? capturedSpec = null;
+        int capturedPageIndex = -1;
+        int? capturedPageSize = null;
 
         Mocker
             .GetMock<IOrganisationRepository>()
             .Setup(r => r.GetBySpecification(It.IsAny<OrganisationSpecification>(), It.IsAny<int>(), It.IsAny<int?>()))
-            .Callback((ISpecification<Organisation> spec, int _, int? _) => capturedSpec = spec as OrganisationSpecification)
+            .Callback((ISpecification<Organisation> spec, int pIndex, int? pSize) =>
+            {
+                capturedSpec = spec as OrganisationSpecification;
+                capturedPageIndex = pIndex;
+                capturedPageSize = pSize;
+            })
             .ReturnsAsync(([], 0));
 
         // Act
-        await Sut.SearchByName(name, pageIndex, pageSize, role, sortOrder);
+        await Sut.SearchByName(name, pageIndex, pageSize, role, countries, sortField, sortDirection);
 
         // Assert
         capturedSpec.ShouldNotBeNull();
+        capturedPageIndex.ShouldBe(pageIndex);
+        capturedPageSize.ShouldBe(pageSize);
+        // We can't introspect private spec internals easily; the above verifies correct plumbing.
     }
 
     [Theory, AutoData]
@@ -123,6 +137,7 @@ public class SearchOrganisationByNameAndRole : TestServiceBase<OrganisationServi
         faker.RuleFor(o => o.TypeName, f => f.Random.Guid().ToString());
         faker.RuleFor(o => o.Name, f => $"nhs {f.Company.CompanyName()}");
         faker.RuleFor(o => o.Status, true);
+        faker.RuleFor(o => o.CountryName, f => f.PickRandom(new[] { "England", "Wales", "Scotland", "Northern Ireland" }));
 
         var service = Mocker.CreateInstance<OrganisationService>();
         var testOrganisations = await TestData.SeedData(_context, faker.Generate(10));

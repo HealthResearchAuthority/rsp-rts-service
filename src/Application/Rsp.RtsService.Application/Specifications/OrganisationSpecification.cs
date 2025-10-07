@@ -1,60 +1,82 @@
 ﻿using Ardalis.Specification;
-using Rsp.RtsService.Application.Enums;
 using Rsp.RtsService.Domain.Entities;
 
 namespace Rsp.RtsService.Application.Specifications;
 
 public class OrganisationSpecification : Specification<Organisation>
 {
-    /// <summary>
-    /// Specification to get organisations by ID
-    /// </summary>
-    /// <param name="id">Id of the organisatio record</param>
     public OrganisationSpecification(string id)
     {
         Query
             .AsNoTracking()
-            .Where(entity => entity.Id == id)
+            .Where(x => x.Id == id)
             .Include(x => x.Roles);
     }
 
-    public OrganisationSpecification(string name, string roleId, SortOrder sortOrder)
+    /// <summary>
+    ///     Main overload: filters by optional name, roleId, and multiple CountryName values.
+    ///     Supports dynamic sorting using tuple-switch syntax.
+    /// </summary>
+    public OrganisationSpecification(
+        string? name,
+        string? roleId,
+        string[]? countryNames,
+        string sortField = "name",
+        string sortDirection = "asc")
     {
         Query.AsNoTracking();
 
-        if (!string.IsNullOrEmpty(roleId))
+        // Optional role filter
+        if (!string.IsNullOrWhiteSpace(roleId))
         {
-            Query.Where(x => x.Roles.Any(x => x.Id == roleId));
+            Query.Where(x => x.Roles.Any(r => r.Id == roleId));
         }
 
-        Query
-            .Where(x => x.Name != null && x.Name.Contains(name) && x.Status == true);
-
-        _ = sortOrder switch
+        // Optional name filter (case-insensitive via ToLower)
+        if (!string.IsNullOrWhiteSpace(name))
         {
-            SortOrder.Ascending => Query.OrderBy(x => x.Name),
-            SortOrder.Descending => Query.OrderByDescending(x => x.Name),
-            _ => Query
+            var term = name.ToLower();
+            Query.Where(x => x.Name != null && x.Name.ToLower().Contains(term));
+        }
+
+        // Multi-country filter (scalar CountryName)
+        if (countryNames is { Length: > 0 })
+        {
+            var set = countryNames
+                .Where(c => !string.IsNullOrWhiteSpace(c))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            if (set.Count > 0)
+            {
+                Query.Where(x => x.CountryName != null && set.Contains(x.CountryName));
+            }
+        }
+
+        _ = (sortField, sortDirection) switch
+        {
+            ("name", "asc") => Query.OrderBy(x => x.Name).ThenBy(x => x.Id),
+            ("name", "desc") => Query.OrderByDescending(x => x.Name).ThenBy(x => x.Id),
+
+            ("country", "asc") => Query.OrderBy(x => x.CountryName).ThenBy(x => x.Id),
+            ("country", "desc") => Query.OrderByDescending(x => x.CountryName).ThenBy(x => x.Id),
+
+            ("isactive", "asc") => Query.OrderByDescending(x => x.Status),
+            ("isactive", "desc") => Query.OrderBy(x => x.Status),
+
+            _ => Query.OrderBy(x => x.Name).ThenBy(x => x.Id)
         };
     }
 
-    public OrganisationSpecification(string roleId, SortOrder sortOrder)
+    /// <summary>
+    ///     Optional overload for IEnumerable&lt;string&gt; inputs (redirects to main string[] constructor).
+    /// </summary>
+    public OrganisationSpecification(
+        string? name,
+        string? roleId,
+        IEnumerable<string>? countryNames,
+        string sortField = "name",
+        string sortDirection = "asc")
+        : this(name, roleId, countryNames?.ToArray(), sortField, sortDirection)
     {
-        Query.AsNoTracking();
-
-        if (!string.IsNullOrEmpty(roleId))
-        {
-            Query.Where(x => x.Roles.Any(x => x.Id == roleId));
-        }
-
-        Query
-            .Where(x => x.Status == true);
-
-        _ = sortOrder switch
-        {
-            SortOrder.Ascending => Query.OrderBy(x => x.Name),
-            SortOrder.Descending => Query.OrderByDescending(x => x.Name),
-            _ => Query
-        };
     }
 }
