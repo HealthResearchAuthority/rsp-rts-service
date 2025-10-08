@@ -2,6 +2,8 @@
 using Rsp.RtsService.Application.Contracts.Services;
 using Rsp.RtsService.Application.DTOS.Responses;
 
+namespace Rsp.RtsService.WebApi.Controllers;
+
 [ApiController]
 [Route("[controller]")]
 public class OrganisationsController(IOrganisationService orgService) : ControllerBase
