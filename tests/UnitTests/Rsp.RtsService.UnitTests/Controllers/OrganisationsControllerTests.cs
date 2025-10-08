@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Rsp.RtsService.Application.Contracts.Services;
 using Rsp.RtsService.Application.DTOS.Responses;
-using Rsp.RtsService.Application.Enums;
 using Rsp.RtsService.WebApi.Controllers;
 using Shouldly;
 
@@ -92,7 +91,8 @@ public class OrganisationsControllerTests : TestServiceBase
     public async Task GetAll_ShouldReturnOk_WhenValid(OrganisationSearchResponse response)
     {
         var mock = Mocker.GetMock<IOrganisationService>();
-        mock.Setup(s => s.GetAll(1, null, null, SortOrder.Ascending))
+        // Controller defaults: countries=null, sortField="name", sortDirection="asc"
+        mock.Setup(s => s.GetAll(1, null, null, null, "name", "asc"))
             .ReturnsAsync(response);
 
         var result = await _controller.GetAll();
@@ -103,10 +103,12 @@ public class OrganisationsControllerTests : TestServiceBase
 
     [Theory]
     [AutoData]
-    public async Task SearchByName_ShouldReturnOk_WhenValid(string name, OrganisationSearchResponse response)
+    public async Task SearchByName_ShouldReturnOk_WhenValid(OrganisationSearchResponse response)
     {
+        var name = "ValidName"; // ensure >= 3 chars
         var mock = Mocker.GetMock<IOrganisationService>();
-        mock.Setup(s => s.SearchByName(name, 1, null, null, SortOrder.Ascending))
+        // Controller defaults: countries=null, sortField="name", sortDirection="asc"
+        mock.Setup(s => s.SearchByName(name, 1, null, null, null, "name", "asc"))
             .ReturnsAsync(response);
 
         var result = await _controller.SearchByName(name);
