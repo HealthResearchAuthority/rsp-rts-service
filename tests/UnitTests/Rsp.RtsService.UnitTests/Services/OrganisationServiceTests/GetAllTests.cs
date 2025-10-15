@@ -56,30 +56,41 @@ public class GetAllTests : TestServiceBase<OrganisationService>
         actualOrganisationIds.ShouldNotBeNull();
         actualOrganisationIds.ShouldBeEquivalentTo(expectedOrganisationIds);
     }
-
     [Fact]
     public async Task GetAll_Should_Pass_Correct_Specification_Parameters()
     {
         // Arrange
         const string role = "Admin";
-        const SortOrder sortOrder = SortOrder.Descending;
+        var countries = new[] { "England", "Wales" };
+        const string sortField = "country";
+        const string sortDirection = "desc";
         const int pageSize = 10;
-        const int pageIndex = 0;
+        const int pageIndex = 1;
 
         OrganisationSpecification? capturedSpec = null;
+        int capturedPageIndex = -1;
+        int? capturedPageSize = null;
 
         Mocker
             .GetMock<IOrganisationRepository>()
             .Setup(r => r.GetBySpecification(It.IsAny<OrganisationSpecification>(), It.IsAny<int>(), It.IsAny<int?>()))
-            .Callback((ISpecification<Organisation> spec, int _, int? _) => capturedSpec = spec as OrganisationSpecification)
+            .Callback((ISpecification<Organisation> spec, int pIndex, int? pSize) =>
+            {
+                capturedSpec = spec as OrganisationSpecification;
+                capturedPageIndex = pIndex;
+                capturedPageSize = pSize;
+            })
             .ReturnsAsync(([], 0));
 
         // Act
-        await Sut.GetAll(pageIndex, pageSize, role, sortOrder);
+        await Sut.GetAll(pageIndex, pageSize, role, countries, sortField, sortDirection);
 
         // Assert
         capturedSpec.ShouldNotBeNull();
+        capturedPageIndex.ShouldBe(pageIndex);
+        capturedPageSize.ShouldBe(pageSize);
     }
+
 
     [Fact]
     public async Task GetAll_Should_Return_Mapped_Dtos()

@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Rsp.RtsService.Application.Contracts.Services;
 using Rsp.RtsService.Application.DTOS.Responses;
-using Rsp.RtsService.Application.Enums;
 
 namespace Rsp.RtsService.WebApi.Controllers;
 
@@ -10,82 +9,114 @@ namespace Rsp.RtsService.WebApi.Controllers;
 public class OrganisationsController(IOrganisationService orgService) : ControllerBase
 {
     /// <summary>
-    /// Query organisations by complete or partial name
+    ///     Query organisations by complete or partial name.
     /// </summary>
     /// <param name="name">The name or partial name of the organisation to search for.</param>
     /// <param name="pageIndex">1-based index of the page to retrieve. Must be greater than 0.</param>
-    /// <param name="pageSize">Optional number of items per page. If null, all matching organisations are returned. Must be greater than 0 if specified.</param>
+    /// <param name="pageSize">Optional number of items per page. If null, returns all matches. Must be &gt; 0 if specified.</param>
     /// <param name="role">Optional role to filter organisations by.</param>
-    /// <param name="sort">Sort order for the results, either ascending or descending.</param>
-    /// <returns></returns>
+    /// <param name="countries">
+    ///     Optional repeated query param(s) for country filter, e.g. ?countries=England&amp;
+    ///     countries=Wales.
+    /// </param>
+    /// <param name="sort">Sort direction: "asc" or "desc".</param>
+    /// <param name="sortField">Sort field: "name", "country", or "isactive".</param>
     [HttpGet("searchByName")]
-    public async Task<ActionResult<OrganisationSearchResponse>> SearchByName(string name, int pageIndex = 1, int? pageSize = null, string? role = null, string sort = "asc")
+    public async Task<ActionResult<OrganisationSearchResponse>> SearchByName(
+        string name,
+        int pageIndex = 1,
+        int? pageSize = null,
+        string? role = null,
+        [FromQuery] string[]? countries = null,
+        string sort = "asc",
+        string sortField = "name")
     {
-        if (name.Length < 3)
+        if (string.IsNullOrWhiteSpace(name) || name.Trim().Length < 3)
         {
             return BadRequest("Name needs to include minimum 3 characters");
         }
+
         if (pageIndex <= 0)
         {
             return BadRequest("pageIndex must be greater than 0 if specified.");
         }
+
         if (pageSize.HasValue && pageSize <= 0)
         {
             return BadRequest("pageSize must be greater than 0 if specified.");
         }
 
-        var sortOrder = sort switch
-        {
-            "asc" => SortOrder.Ascending,
-            "desc" => SortOrder.Descending,
-            _ => SortOrder.Ascending
-        };
+        var countryFilter = countries?
+            .Where(c => !string.IsNullOrWhiteSpace(c))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
 
-        var organisations = await orgService.SearchByName(name, pageIndex, pageSize, role, sortOrder);
+        var result = await orgService.SearchByName(
+            name,
+            pageIndex,
+            pageSize,
+            role,
+            countryFilter,
+            sortField,
+            sort);
 
-        return Ok(organisations);
+        return Ok(result);
     }
 
     /// <summary>
-    /// Retrives a paginated list of all organisations
+    ///     Retrieves a paginated list of organisations, with optional role/country filtering and sorting.
     /// </summary>
     /// <param name="pageIndex">1-based index of the page to retrieve. Must be greater than 0.</param>
-    /// <param name="pageSize">Optional number of items per page. If null, all matching organisations are returned. Must be greater than 0 if specified.</param>
+    /// <param name="pageSize">Optional number of items per page. If null, returns all matches. Must be &gt; 0 if specified.</param>
     /// <param name="role">Optional role to filter organisations by.</param>
-    /// <param name="sort">Sort order for the results, either ascending or descending.</param>
-    /// <returns></returns>
+    /// <param name="countries">
+    ///     Optional repeated query param(s) for country filter, e.g. ?countries=England&amp;
+    ///     countries=Wales.
+    /// </param>
+    /// <param name="sort">Sort direction: "asc" or "desc".</param>
+    /// <param name="sortField">Sort field: "name", "country", or "isactive".</param>
     [HttpGet("getAll")]
-    public async Task<ActionResult<OrganisationSearchResponse>> GetAll(int pageIndex = 1, int? pageSize = null, string? role = null, string sort = "asc")
+    public async Task<ActionResult<OrganisationSearchResponse>> GetAll(
+        int pageIndex = 1,
+        int? pageSize = null,
+        string? role = null,
+        [FromQuery] string[]? countries = null,
+        string sort = "asc",
+        string sortField = "name")
     {
         if (pageIndex <= 0)
         {
             return BadRequest("pageIndex must be greater than 0 if specified.");
         }
+
         if (pageSize.HasValue && pageSize <= 0)
         {
             return BadRequest("pageSize must be greater than 0 if specified.");
         }
 
-        var sortOrder = sort switch
-        {
-            "asc" => SortOrder.Ascending,
-            "desc" => SortOrder.Descending,
-            _ => SortOrder.Ascending
-        };
+        var countryFilter = countries?
+            .Where(c => !string.IsNullOrWhiteSpace(c))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
 
-        var organisations = await orgService.GetAll(pageIndex, pageSize, role, sortOrder);
+        var result = await orgService.GetAll(
+            pageIndex,
+            pageSize,
+            role,
+            countryFilter,
+            sortField,
+            sort);
 
-        return Ok(organisations);
+        return Ok(result);
     }
 
     /// <summary>
-    /// Get a single organisation by ID.
+    ///     Get a single organisation by ID.
     /// </summary>
     [HttpGet("getById")]
     public async Task<ActionResult<GetOrganisationByIdDto>> GetById(string id)
     {
         var record = await orgService.GetById(id);
-
         return Ok(record);
     }
 }
