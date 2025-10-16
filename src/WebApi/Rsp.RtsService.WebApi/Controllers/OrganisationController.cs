@@ -31,16 +31,14 @@ public class OrganisationsController(IOrganisationService orgService) : Controll
         string sort = "asc",
         string sortField = "name")
     {
-        if (string.IsNullOrWhiteSpace(name) || name.Trim().Length < 3)
+        if (name.Length < 3)
         {
             return BadRequest("Name needs to include minimum 3 characters");
         }
-
         if (pageIndex <= 0)
         {
             return BadRequest("pageIndex must be greater than 0 if specified.");
         }
-
         if (pageSize.HasValue && pageSize <= 0)
         {
             return BadRequest("pageSize must be greater than 0 if specified.");
