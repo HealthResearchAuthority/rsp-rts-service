@@ -183,7 +183,7 @@ stages:
     variables: 
     - group: 'ProductionEnvironment'
     - name: FunctionAppName
-      value: "func-rts-data-sync-production"
+      value: "func-rts-data-sync-prod"
     condition: eq('${{ parameters.env }}', 'production')
     jobs:
       - template: jobs/deployFunction.yaml@library
