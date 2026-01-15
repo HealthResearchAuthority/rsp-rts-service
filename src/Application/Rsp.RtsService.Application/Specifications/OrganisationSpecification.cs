@@ -14,8 +14,8 @@ public class OrganisationSpecification : Specification<Organisation>
     }
 
     /// <summary>
-    ///     Main overload: filters by optional name, roleId, and multiple CountryName values.
-    ///     Supports dynamic sorting using tuple-switch syntax.
+    /// Main overload: filters by optional name, roleId, and multiple CountryName values. Supports
+    /// dynamic sorting using tuple-switch syntax.
     /// </summary>
     public OrganisationSpecification(
         string? name,
@@ -25,6 +25,9 @@ public class OrganisationSpecification : Specification<Organisation>
         string sortDirection = "asc")
     {
         Query.AsNoTracking();
+
+        // Organisation must be active
+        Query.Where(x => x.Status == true);
 
         // Optional role filter
         if (!string.IsNullOrWhiteSpace(roleId))
@@ -52,6 +55,9 @@ public class OrganisationSpecification : Specification<Organisation>
             }
         }
 
+        // Only include active roles in the result payload
+        Query.Where(x => x.Roles.Any(r => r.Status == "Active"));
+
         _ = (sortField, sortDirection) switch
         {
             ("name", "asc") => Query.OrderBy(x => x.Name).ThenBy(x => x.Id),
@@ -68,7 +74,7 @@ public class OrganisationSpecification : Specification<Organisation>
     }
 
     /// <summary>
-    ///     Optional overload for IEnumerable&lt;string&gt; inputs (redirects to main string[] constructor).
+    /// Optional overload for IEnumerable&lt;string&gt; inputs (redirects to main string[] constructor).
     /// </summary>
     public OrganisationSpecification(
         string? name,
