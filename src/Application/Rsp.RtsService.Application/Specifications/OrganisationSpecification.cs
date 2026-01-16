@@ -56,7 +56,9 @@ public class OrganisationSpecification : Specification<Organisation>
         }
 
         // Only include active roles in the result payload
-        Query.Where(x => x.Roles.Any(r => r.Status == "Active"));
+        Query.Where(x => x.Roles.Any(r =>
+            r.Status != null &&
+            r.Status.ToLower() == "active"));
 
         _ = (sortField, sortDirection) switch
         {
