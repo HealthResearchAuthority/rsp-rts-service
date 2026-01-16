@@ -32,7 +32,11 @@ public class OrganisationSpecification : Specification<Organisation>
         // Optional role filter
         if (!string.IsNullOrWhiteSpace(roleId))
         {
-            Query.Where(x => x.Roles.Any(r => r.Id == roleId));
+            Query.Where(x =>
+                // Keep organisations where there is NO role that matches the roleId but is NOT active
+                !x.Roles.Any(r =>
+                    r.Id == roleId &&
+                    (r.Status == null || r.Status.ToLower() != "active")));
         }
 
         // Optional name filter (case-insensitive via ToLower)
@@ -54,11 +58,6 @@ public class OrganisationSpecification : Specification<Organisation>
                 Query.Where(x => x.CountryName != null && set.Contains(x.CountryName));
             }
         }
-
-        // Only include active roles in the result payload
-        Query.Where(x => x.Roles.Any(r =>
-            r.Status != null &&
-            r.Status.ToLower() == "active"));
 
         _ = (sortField, sortDirection) switch
         {
