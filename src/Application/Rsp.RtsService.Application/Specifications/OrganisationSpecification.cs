@@ -33,10 +33,10 @@ public class OrganisationSpecification : Specification<Organisation>
         if (!string.IsNullOrWhiteSpace(roleId))
         {
             Query.Where(x =>
-                // Keep organisations where there is NO role that matches the roleId but is NOT active
-                !x.Roles.Any(r =>
+                x.Roles.Any(r =>
                     r.Id == roleId &&
-                    (r.Status == null || r.Status.ToLower() != "active")));
+                    r.Status != null &&
+                    r.Status.ToLower() == "active"));
         }
 
         // Optional name filter (case-insensitive via ToLower)
