@@ -1,13 +1,17 @@
 ﻿using AutoFixture;
 using AutoFixture.Xunit2;
+using Bogus;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Rsp.RtsImport.Application.Constants;
+using Rsp.RtsImport.Application.Contracts;
 using Rsp.RtsImport.Application.DTO.Responses;
 using Rsp.RtsImport.Application.DTO.Responses.OrganisationsAndRolesDTOs;
 using Rsp.RtsImport.Application.ServiceClients;
 using Rsp.RtsImport.Services;
+using Rsp.RtsService.Application.Contracts.Repositories;
+using Rsp.RtsService.Application.Specifications;
 using Rsp.RtsService.Domain.Entities;
 using Rsp.RtsService.Infrastructure;
 using Rts.RtsImport.UnitTests.Helpers;
@@ -19,6 +23,7 @@ public class OrganisationsServiceTests : TestServiceBase
 {
     private readonly SqliteConnection _connection;
     private readonly RtsDbContext _context;
+    private readonly IrasContext _irasContext;
     private readonly OrganisationsService _service;
 
     public OrganisationsServiceTests()
@@ -30,10 +35,19 @@ public class OrganisationsServiceTests : TestServiceBase
             .UseSqlite(_connection)
             .Options;
 
+        var irasOptions = new DbContextOptionsBuilder<IrasContext>()
+            .UseSqlite(_connection)
+            .Options;
+
         _context = new RtsDbContext(options);
         _context.Database.EnsureCreated();
 
         Mocker.Use(_context);
+
+        _irasContext = new IrasContext(irasOptions);
+        _irasContext.Database.EnsureCreated();
+
+        Mocker.Use(_irasContext);
         _service = Mocker.CreateInstance<OrganisationsService>();
     }
 
@@ -348,6 +362,266 @@ public class OrganisationsServiceTests : TestServiceBase
 
         // Assert
         result.RtsOrganisation.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task UpdateSponsorOrganisations_WhenStatusChangesToActive_CallsEnable()
+    {
+        // Arrange
+        const string orgId = "87795";
+
+        // Incoming RTS item says Sponsor role is "active"
+        var incoming = new Organisation
+        {
+            Id = orgId,
+            Name = "Incoming Org",
+            Roles = new List<OrganisationRole>
+        {
+            new()
+            {
+                Id = OrganisationRoles.Sponsor,
+                Status = "active"
+            }
+        }
+        };
+
+        // Existing in "repo" says Sponsor role is "terminated" (different => should update)
+        var existing = new Organisation
+        {
+            Id = orgId,
+            Name = "Existing Org",
+            Roles = new List<OrganisationRole>
+        {
+            new()
+            {
+                Id = OrganisationRoles.Sponsor,
+                Status = "terminated"
+            }
+        }
+        };
+
+        var orgRepo = Mocker.GetMock<IOrganisationRepository>();
+        orgRepo
+            .Setup(r => r.GetById(It.Is<OrganisationSpecification>(s => SpecMatchesId(s, orgId))))
+            .ReturnsAsync(existing);
+
+        var sponsorOrgService = Mocker.GetMock<ISponsorOrganisationService>();
+        sponsorOrgService
+            .Setup(s => s.EnableSponsorOrganisation(orgId))
+            .ReturnsAsync(new SponsorOrganisation());
+
+        // Act
+        await _service.UpdateSponsorOrganisations(new[] { incoming });
+
+        // Assert
+        sponsorOrgService.Verify(s => s.EnableSponsorOrganisation(orgId), Times.Once);
+        sponsorOrgService.Verify(s => s.DisableSponsorOrganisation(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateSponsorOrganisations_WhenStatusChangesToTerminated_CallsDisable()
+    {
+        // Arrange
+        const string orgId = "87795";
+
+        var incoming = new Organisation
+        {
+            Id = orgId,
+            Name = "Incoming Org",
+            Roles = new List<OrganisationRole>
+        {
+            new()
+            {
+                Id = OrganisationRoles.Sponsor,
+                Status = "terminated"
+            }
+        }
+        };
+
+        var existing = new Organisation
+        {
+            Id = orgId,
+            Name = "Existing Org",
+            Roles = new List<OrganisationRole>
+        {
+            new()
+            {
+                Id = OrganisationRoles.Sponsor,
+                Status = "active"
+            }
+        }
+        };
+
+        var orgRepo = Mocker.GetMock<IOrganisationRepository>();
+        orgRepo
+            .Setup(r => r.GetById(It.Is<OrganisationSpecification>(s => SpecMatchesId(s, orgId))))
+            .ReturnsAsync(existing);
+
+        var sponsorOrgService = Mocker.GetMock<ISponsorOrganisationService>();
+        sponsorOrgService
+            .Setup(s => s.DisableSponsorOrganisation(orgId))
+            .ReturnsAsync(new SponsorOrganisation());
+
+        // Act
+        await _service.UpdateSponsorOrganisations(new[] { incoming });
+
+        // Assert
+        sponsorOrgService.Verify(s => s.DisableSponsorOrganisation(orgId), Times.Once);
+        sponsorOrgService.Verify(s => s.EnableSponsorOrganisation(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateSponsorOrganisations_WhenStatusHasNotChanged_DoesNothing()
+    {
+        // Arrange
+        const string orgId = "87795";
+
+        var incoming = new Organisation
+        {
+            Id = orgId,
+            Name = "Incoming Org",
+            Roles = new List<OrganisationRole>
+        {
+            new()
+            {
+                Id = OrganisationRoles.Sponsor,
+                Status = "active"
+            }
+        }
+        };
+
+        // Same status => should NOT call enable/disable
+        var existing = new Organisation
+        {
+            Id = orgId,
+            Name = "Existing Org",
+            Roles = new List<OrganisationRole>
+        {
+            new()
+            {
+                Id = OrganisationRoles.Sponsor,
+                Status = "active"
+            }
+        }
+        };
+
+        var orgRepo = Mocker.GetMock<IOrganisationRepository>();
+        orgRepo
+            .Setup(r => r.GetById(It.IsAny<OrganisationSpecification>()))
+            .ReturnsAsync(existing);
+
+        var sponsorOrgService = Mocker.GetMock<ISponsorOrganisationService>();
+
+        // Act
+        await _service.UpdateSponsorOrganisations(new[] { incoming });
+
+        // Assert
+        sponsorOrgService.Verify(s => s.EnableSponsorOrganisation(It.IsAny<string>()), Times.Never);
+        sponsorOrgService.Verify(s => s.DisableSponsorOrganisation(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateSponsorOrganisations_WhenOrganisationIdIsNot87795_IgnoresEvenIfChanged()
+    {
+        // Arrange
+        const string orgId = "NOT-87795";
+
+        var incoming = new Organisation
+        {
+            Id = orgId,
+            Name = "Incoming Org",
+            Roles = new List<OrganisationRole>
+        {
+            new()
+            {
+                Id = OrganisationRoles.Sponsor,
+                Status = "terminated"
+            }
+        }
+        };
+
+        // Would be different, but should be ignored due to hard-coded filter
+        var existing = new Organisation
+        {
+            Id = orgId,
+            Name = "Existing Org",
+            Roles = new List<OrganisationRole>
+        {
+            new()
+            {
+                Id = OrganisationRoles.Sponsor,
+                Status = "active"
+            }
+        }
+        };
+
+        var orgRepo = Mocker.GetMock<IOrganisationRepository>();
+        orgRepo
+            .Setup(r => r.GetById(It.IsAny<OrganisationSpecification>()))
+            .ReturnsAsync(existing);
+
+        var sponsorOrgService = Mocker.GetMock<ISponsorOrganisationService>();
+
+        // Act
+        await _service.UpdateSponsorOrganisations(new[] { incoming });
+
+        // Assert
+        sponsorOrgService.Verify(s => s.EnableSponsorOrganisation(It.IsAny<string>()), Times.Never);
+        sponsorOrgService.Verify(s => s.DisableSponsorOrganisation(It.IsAny<string>()), Times.Never);
+
+        // Also: since it’s filtered out, it shouldn’t even fetch from repository
+        orgRepo.Verify(r => r.GetById(It.IsAny<OrganisationSpecification>()), Times.Never);
+    }
+
+    private static bool SpecMatchesId(OrganisationSpecification spec, string expectedId)
+    {
+        var t = spec.GetType();
+        foreach (var propName in new[] { "RtsId", "Id", "Value", "OrganisationId", "Key" })
+        {
+            var prop = t.GetProperty(propName);
+            if (prop?.PropertyType == typeof(string))
+            {
+                var val = (string?)prop.GetValue(spec);
+                return string.Equals(val, expectedId, StringComparison.Ordinal);
+            }
+        }
+
+        return spec is not null;
+    }
+
+    [Fact]
+    public async Task UpdateSponsorOrganisations_WhenStatusIsUnknown_DoesNotCallEnableOrDisable()
+    {
+        const string orgId = "87795";
+
+        var incoming = new Organisation
+        {
+            Id = orgId,
+            Roles = new List<OrganisationRole>
+            {
+                new() { Id = OrganisationRoles.Sponsor, Status = "pending" }
+            }
+        };
+
+        var existing = new Organisation
+        {
+            Id = orgId,
+            Roles = new List<OrganisationRole>
+            {
+                new() { Id = OrganisationRoles.Sponsor, Status = "active" }
+            }
+        };
+
+        Mocker.GetMock<IOrganisationRepository>()
+            .Setup(r => r.GetById(It.IsAny<OrganisationSpecification>()))
+            .ReturnsAsync(existing);
+
+        var sponsorOrgService = Mocker.GetMock<ISponsorOrganisationService>();
+
+        await _service.UpdateSponsorOrganisations(new[] { incoming });
+
+        sponsorOrgService.Verify(s => s.EnableSponsorOrganisation(It.IsAny<string>()), Times.Never);
+        sponsorOrgService.Verify(s => s.DisableSponsorOrganisation(It.IsAny<string>()), Times.Never);
     }
 
     // Clean up the connection after tests

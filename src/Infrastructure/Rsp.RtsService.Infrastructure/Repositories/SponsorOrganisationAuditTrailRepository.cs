@@ -5,7 +5,7 @@ namespace Rsp.RtsService.Infrastructure.Repositories;
 
 public class SponsorOrganisationAuditTrailRepository(IrasContext irasContext) : ISponsorOrganisationAuditTrailRepository
 {
-    public async Task<SponsorOrganisationAuditTrail> LogSponsorOrganisationAuditTrail(
+    public async Task LogSponsorOrganisationAuditTrail(
         SponsorOrganisation sponsorOrganisation, Organisation organisation)
 
     {
@@ -20,9 +20,7 @@ public class SponsorOrganisationAuditTrailRepository(IrasContext irasContext) : 
 
         irasContext.SponsorOrganisationsAuditTrail.Add(auditTrail);
 
-        await irasContext.SaveChangesAsync();
-
-        return auditTrail;
+        irasContext.SaveChangesAsync();
     }
 
     private static string GenerateDescription(

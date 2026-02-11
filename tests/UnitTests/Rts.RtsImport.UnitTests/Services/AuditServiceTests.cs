@@ -104,4 +104,24 @@ public class AuditServiceTests : TestServiceBase
         Assert.NotNull(audit);
         Assert.Equal(AuditConstants.FunctionTimerEnded, audit.Description);
     }
+
+    [Fact]
+    public async Task DatabaseSponsorOrganisationUpdateStarted_AddsAuditEntry()
+    {
+        await _service.DatabaseSponsorOrganisationUpdateStarted();
+
+        var audit = await _context.Audit.FirstOrDefaultAsync();
+        Assert.NotNull(audit);
+        Assert.Equal(AuditConstants.DatabaseSponsorOrganisationUpdateStarted, audit.Description);
+    }
+
+    [Fact]
+    public async Task DatabaseSponsorOrganisationUpdateCompleted_AddsAuditEntry()
+    {
+        await _service.DatabaseSponsorOrganisationUpdateCompleted();
+
+        var audit = await _context.Audit.FirstOrDefaultAsync();
+        Assert.NotNull(audit);
+        Assert.Equal(AuditConstants.DatabaseSponsorOrganisationUpdateCompleted, audit.Description);
+    }
 }

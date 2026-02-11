@@ -4,5 +4,5 @@ namespace Rsp.RtsService.Application.Contracts.Repositories;
 
 public interface ISponsorOrganisationAuditTrailRepository
 {
-    Task<SponsorOrganisationAuditTrail> LogSponsorOrganisationAuditTrail(SponsorOrganisation sponsorOrganisation, Organisation organisation);
+    Task LogSponsorOrganisationAuditTrail(SponsorOrganisation sponsorOrganisation, Organisation organisation);
 }

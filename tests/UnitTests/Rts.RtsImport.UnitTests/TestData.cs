@@ -17,7 +17,8 @@ public static class TestData
     /// <param name="context">Database context</param>
     /// <param name="generator">Test data generator</param>
     /// <param name="records">Number of records to seed</param>
-    public static async Task<IList<Organisation>> SeedOrganisations(RtsDbContext context, Generator<Organisation> generator, int records)
+    public static async Task<IList<Organisation>> SeedOrganisations(RtsDbContext context,
+        Generator<Organisation> generator, int records)
     {
         // seed data using bogus
         var entities = generator
@@ -28,7 +29,7 @@ public static class TestData
         entities[1].Name = "life sciences";
         entities[2].Name = "simple life";
 
-      entities.ForEach(x=>x.Status = true);
+        entities.ForEach(x => x.Status = true);
 
         await context.Organisation.AddRangeAsync(entities);
 
@@ -69,5 +70,4 @@ public static class TestData
 
         return entities;
     }
-
 }

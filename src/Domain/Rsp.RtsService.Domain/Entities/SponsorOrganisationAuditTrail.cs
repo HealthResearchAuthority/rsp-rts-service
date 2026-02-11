@@ -2,6 +2,7 @@
 
 public class SponsorOrganisationAuditTrail
 {
+    public Guid Id { get; set; } = Guid.NewGuid();
     public Guid SponsorOrganisationId { get; set; }
     public string RtsId { get; set; } = null!;
     public DateTime DateTimeStamp { get; set; }
