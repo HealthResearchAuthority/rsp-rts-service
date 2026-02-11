@@ -50,10 +50,15 @@ public static class Program
             options.UseSqlServer(builder.Configuration.GetConnectionString("RTSDatabaseConnection"));
         });
 
+        builder.Services.AddDbContext<IrasContext>(options =>
+        {
+            options.EnableSensitiveDataLogging();
+            options.UseSqlServer(builder.Configuration.GetConnectionString("IrasServiceDatabaseConnection"));
+        });
+
         builder.Services.AddHttpContextAccessor();
 
         builder.Services.AddHeaderPropagation(options => options.Headers.Add(RequestHeadersKeys.CorrelationId));
-
 
         builder.Services.Configure<AppSettings>(builder.Configuration.GetSection(nameof(AppSettings)));
         var appSettings = builder.Configuration.GetSection(nameof(AppSettings)).Get<AppSettings>()!;
@@ -63,11 +68,11 @@ public static class Program
         // register configurationSettings as singleton
         builder.Services.AddSingleton(appSettings);
 
-        // Creating a feature manager without the use of DI. Injecting IFeatureManager
-        // via DI is appropriate in constructor methods. At the startup, it's
-        // not recommended to call services.BuildServiceProvider and retrieve IFeatureManager
-        // via provider. Instead, the following approach is recommended by creating FeatureManager
-        // with ConfigurationFeatureDefinitionProvider using the existing configuration.
+        // Creating a feature manager without the use of DI. Injecting IFeatureManager via DI is
+        // appropriate in constructor methods. At the startup, it's not recommended to call
+        // services.BuildServiceProvider and retrieve IFeatureManager via provider. Instead, the
+        // following approach is recommended by creating FeatureManager with
+        // ConfigurationFeatureDefinitionProvider using the existing configuration.
         var featureManager = new FeatureManager(new ConfigurationFeatureDefinitionProvider(builder.Configuration));
 
         if (await featureManager.IsEnabledAsync(Features.InterceptedLogging))

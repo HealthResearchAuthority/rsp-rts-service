@@ -14,4 +14,7 @@ public static class AuditConstants
     public const string DatabaseOrganisationRolesInsertCompleted = "Database Organisation Roles insert process completed. {0} records inserted.";
 
     public const string FunctionTimerEnded = "Function execution completed from timer trigger.";
+
+    public const string DatabaseSponsorOrganisationUpdateStarted = "Database Sponsor Organisation update process started.";
+    public const string DatabaseSponsorOrganisationUpdateCompleted = "Database Sponsor Organisation update process completed.";
 }

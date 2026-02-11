@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using EFCore.BulkExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -11,6 +12,8 @@ using Rsp.RtsImport.Application.DTO.Responses;
 using Rsp.RtsImport.Application.DTO.Responses.OrganisationsAndRolesDTOs;
 using Rsp.RtsImport.Application.ServiceClients;
 using Rsp.RtsImport.Application.Settings;
+using Rsp.RtsService.Application.Contracts.Repositories;
+using Rsp.RtsService.Application.Specifications;
 using Rsp.RtsService.Domain.Entities;
 using Rsp.RtsService.Infrastructure;
 
@@ -21,7 +24,9 @@ public class OrganisationsService
     IRtsServiceClient rtsClient,
     RtsDbContext db,
     AppSettings appSettings,
-    ILogger<OrganisationsService> logger
+    ILogger<OrganisationsService> logger,
+    ISponsorOrganisationService sponsorOrganisationService,
+    IOrganisationRepository organisationRepository
 ) : IOrganisationService
 {
     public async Task<DbOperationResult> UpdateOrganisations
@@ -287,6 +292,39 @@ public class OrganisationsService
             // Optional: Log and rethrow or return empty on failure
             logger.LogAsError("RTS_API_ERROR", $"Error fetching data at offset {offset}: {ex.Message}");
             return [];
+        }
+    }
+
+    public async Task UpdateSponsorOrganisations(IEnumerable<Organisation> items)
+    {
+        var sponsorOrganisations = items
+            .SelectMany(o => o.Roles
+                .Where(r => r.Id == OrganisationRoles.Sponsor)
+                .Select(r => new
+                {
+                    OrganisationId = o.Id,
+                    OrganisationName = o.Name,
+                    RoleId = r.Id,
+                    Status = r.Status
+                })).ToList();
+
+        foreach (var sponsorOrganisation in sponsorOrganisations.Where(x => x.OrganisationId == "87795"))
+        {
+            var organsation = await organisationRepository.GetById(new OrganisationSpecification(sponsorOrganisation.OrganisationId));
+            var organisationRole = organsation.Roles.First(r => r.Id == OrganisationRoles.Sponsor);
+
+            // IF THE STATUS HAS CHANGED THEN WE WANT TO UPDATE EITHER WAY, IF NOT IGNORE AND CONTNUUE
+            if (!string.Equals(sponsorOrganisation.Status, organisationRole.Status, StringComparison.OrdinalIgnoreCase))
+            {
+                if (string.Equals(sponsorOrganisation.Status, "active", StringComparison.OrdinalIgnoreCase))
+                {
+                    await sponsorOrganisationService.EnableSponsorOrganisation(sponsorOrganisation.OrganisationId);
+                }
+                else if (string.Equals(sponsorOrganisation.Status, "terminated", StringComparison.OrdinalIgnoreCase))
+                {
+                    await sponsorOrganisationService.DisableSponsorOrganisation(sponsorOrganisation.OrganisationId);
+                }
+            }
         }
     }
 }

@@ -55,6 +55,17 @@ public class AuditService(
         await ImportAudit(message);
     }
 
+    public async Task DatabaseSponsorOrganisationUpdateStarted()
+    {
+        var message = string.Format(AuditConstants.DatabaseSponsorOrganisationUpdateStarted);
+        await ImportAudit(message);
+    }
+
+    public async Task DatabaseSponsorOrganisationUpdateCompleted()
+    {
+        var message = string.Format(AuditConstants.DatabaseSponsorOrganisationUpdateCompleted);
+        await ImportAudit(message);
+    }
 
     private async Task ImportAudit(string description)
     {
