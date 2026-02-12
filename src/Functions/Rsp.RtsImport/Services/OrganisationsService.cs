@@ -308,7 +308,7 @@ public class OrganisationsService
                     Status = r.Status
                 })).ToList();
 
-        foreach (var sponsorOrganisation in sponsorOrganisations.Where(x => x.OrganisationId == "87795"))
+        foreach (var sponsorOrganisation in sponsorOrganisations)
         {
             var organsation = await organisationRepository.GetById(new OrganisationSpecification(sponsorOrganisation.OrganisationId));
             var organisationRole = organsation.Roles.First(r => r.Id == OrganisationRoles.Sponsor);
