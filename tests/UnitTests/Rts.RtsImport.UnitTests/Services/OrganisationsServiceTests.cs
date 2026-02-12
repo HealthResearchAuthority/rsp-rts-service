@@ -520,59 +520,6 @@ public class OrganisationsServiceTests : TestServiceBase
         sponsorOrgService.Verify(s => s.DisableSponsorOrganisation(It.IsAny<string>()), Times.Never);
     }
 
-    [Fact]
-    public async Task UpdateSponsorOrganisations_WhenOrganisationIdIsNot87795_IgnoresEvenIfChanged()
-    {
-        // Arrange
-        const string orgId = "NOT-87795";
-
-        var incoming = new Organisation
-        {
-            Id = orgId,
-            Name = "Incoming Org",
-            Roles = new List<OrganisationRole>
-        {
-            new()
-            {
-                Id = OrganisationRoles.Sponsor,
-                Status = "terminated"
-            }
-        }
-        };
-
-        // Would be different, but should be ignored due to hard-coded filter
-        var existing = new Organisation
-        {
-            Id = orgId,
-            Name = "Existing Org",
-            Roles = new List<OrganisationRole>
-        {
-            new()
-            {
-                Id = OrganisationRoles.Sponsor,
-                Status = "active"
-            }
-        }
-        };
-
-        var orgRepo = Mocker.GetMock<IOrganisationRepository>();
-        orgRepo
-            .Setup(r => r.GetById(It.IsAny<OrganisationSpecification>()))
-            .ReturnsAsync(existing);
-
-        var sponsorOrgService = Mocker.GetMock<ISponsorOrganisationService>();
-
-        // Act
-        await _service.UpdateSponsorOrganisations(new[] { incoming });
-
-        // Assert
-        sponsorOrgService.Verify(s => s.EnableSponsorOrganisation(It.IsAny<string>()), Times.Never);
-        sponsorOrgService.Verify(s => s.DisableSponsorOrganisation(It.IsAny<string>()), Times.Never);
-
-        // Also: since it’s filtered out, it shouldn’t even fetch from repository
-        orgRepo.Verify(r => r.GetById(It.IsAny<OrganisationSpecification>()), Times.Never);
-    }
-
     private static bool SpecMatchesId(OrganisationSpecification spec, string expectedId)
     {
         var t = spec.GetType();
