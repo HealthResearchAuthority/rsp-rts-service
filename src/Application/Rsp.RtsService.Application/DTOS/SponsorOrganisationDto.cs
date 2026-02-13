@@ -12,5 +12,4 @@ public class SponsorOrganisationDto
     public DateTime? CreatedDate { get; set; }
     public string? UpdatedBy { get; set; }
     public DateTime? UpdatedDate { get; set; }
-    public IEnumerable<SponsorOrganisationUserDto>? Users { get; set; } = [];
 }
