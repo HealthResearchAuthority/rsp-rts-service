@@ -3,9 +3,11 @@ using AutoFixture.Xunit2;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Moq;
+using Refit;
 using Rsp.RtsImport.Application.Constants;
 using Rsp.RtsImport.Application.Contracts;
 using Rsp.RtsImport.Application.DTO.Responses;
+using Rsp.RtsImport.Application.DTO.Responses.OrganisationsAndRolesDTOs;
 using Rsp.RtsImport.Application.ServiceClients;
 using Rsp.RtsImport.Services;
 using Rsp.RtsService.Application.Contracts.Repositories;
@@ -231,5 +233,384 @@ public class OrganisationsServiceTests : TestServiceBase, IDisposable
         sponsorOrgService.Verify(s => s.EnableSponsorOrganisation(It.IsAny<string>()), Times.Never);
         sponsorOrgService.Verify(s => s.DisableSponsorOrganisation(It.IsAny<string>()), Times.Never);
         sponsorOrgService.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task FetchPageCountAsync_WhenClientReturnsNull_ReturnsMinusOne()
+    {
+        // Arrange
+        var mockRtsClient = Mocker.GetMock<IRtsServiceClient>();
+        mockRtsClient
+            .Setup(x => x.GetOrganisationsAndRoles(It.IsAny<string>(), 0, 1))
+            .ReturnsAsync((ApiResponse<RtsOrganisationsAndRolesResponse>?)null);
+
+        var sut = CreateSut();
+
+        // Act
+        var result = await sut.FetchPageCountAsync("2024-01-01");
+
+        // Assert
+        result.ShouldBe(-1);
+    }
+
+    [Fact]
+    public async Task FetchOrganisationAndRolesAsync_WhenSuccessful_ReturnsTransformedData()
+    {
+        // Arrange
+        var entry = BuildValidFhirEntry(
+            orgId: "ORG-001",
+            oid: "ORG-ID-001",
+            roleId: "ROLE-001",
+            roleStatus: "Active",
+            roleName: "ROLE-001_NAME",
+            scoper: 123);
+
+        var response = new RtsOrganisationsAndRolesResponse
+        {
+            Entry = new List<RtsFhirEntry> { entry }
+        };
+
+        var apiResponse = ApiResponseHelpers.CreateRtsOrganisationsAndRolesResponse(response);
+
+        var mockRtsClient = Mocker.GetMock<IRtsServiceClient>();
+        mockRtsClient
+            .Setup(x => x.GetOrganisationsAndRoles(It.IsAny<string>(), 0, 100))
+            .ReturnsAsync(apiResponse);
+
+        var sut = CreateSut();
+
+        // Act
+        var result = (await sut.FetchOrganisationAndRolesAsync("2024-01-01", 0, 100)).ToList();
+
+        // Assert
+        result.ShouldNotBeEmpty();
+
+        result[0].RtsOrganisation.ShouldNotBeNull();
+        result[0].RtsOrganisation.Id.ShouldBe("ORG-001");
+        result[0].RtsOrganisation.OId.ShouldBe("ORG-ID-001");
+
+        result[0].RtsRole.Count.ShouldBe(1);
+        var role = result[0].RtsRole.First();
+
+        role.Id.ShouldBe("ROLE-001");
+        role.Status.ShouldBe("Active");
+        role.RoleName.ShouldBe("ROLE-001_NAME");
+        role.Scoper.ShouldBe(123);
+        role.OrganisationId.ShouldBe("ORG-001");
+    }
+
+    [Fact]
+    public async Task FetchOrganisationAndRolesAsync_WhenUnsuccessful_ReturnsEmpty()
+    {
+        // Arrange
+        var invalid = ApiResponseHelpers.CreateRtsOrganisationsAndRolesInvalidResponse(
+            new RtsOrganisationsAndRolesResponse());
+
+        var mockRtsClient = Mocker.GetMock<IRtsServiceClient>();
+        mockRtsClient
+            .Setup(x => x.GetOrganisationsAndRoles(It.IsAny<string>(), 0, 100))
+            .ReturnsAsync(invalid);
+
+        var sut = CreateSut();
+
+        // Act
+        var result = (await sut.FetchOrganisationAndRolesAsync("2024-01-01", 0, 100)).ToList();
+
+        // Assert
+        result.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task FetchOrganisationAndRolesAsync_WhenClientThrows_ReturnsEmpty()
+    {
+        // Arrange
+        var mockRtsClient = Mocker.GetMock<IRtsServiceClient>();
+        mockRtsClient
+            .Setup(x => x.GetOrganisationsAndRoles(It.IsAny<string>(), 0, 100))
+            .ThrowsAsync(new Exception("boom"));
+
+        var sut = CreateSut();
+
+        // Act
+        var result = (await sut.FetchOrganisationAndRolesAsync("2024-01-01", 0, 100)).ToList();
+
+        // Assert
+        result.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void TransformOrganisationAndRoles_WhenDuplicateRoleExtensions_OnlyAddsRoleOnce()
+    {
+        // Arrange
+        var sut = CreateSut();
+
+        var roleExt = BuildRoleExtension(
+            roleId: "ROLE-001",
+            roleStatus: "Active",
+            roleName: "ROLE-001_NAME",
+            scoper: 123,
+            startDate: DateTime.UtcNow.ToString("yyyy-MM-dd"));
+
+        var entry = BuildValidFhirEntry(
+            orgId: "ORG-001",
+            oid: "ORG-ID-001",
+            roleId: "ROLE-001",
+            roleStatus: "Active",
+            roleName: "ROLE-001_NAME",
+            scoper: 123);
+
+        // Force duplicates
+        entry.Resource.Extension = new List<RtsFhirExtension> { roleExt, roleExt };
+
+        // Act
+        var result = sut.TransformOrganisationAndRoles(entry);
+
+        // Assert
+        result.RtsOrganisation.ShouldNotBeNull();
+        result.RtsRole.ShouldNotBeNull();
+        result.RtsRole.Count.ShouldBe(1);
+    }
+
+    [Fact]
+    public void TransformOrganisationAndRoles_WhenEntryInvalid_ReturnsEmptyContainer()
+    {
+        // Arrange
+        var sut = CreateSut();
+
+        var entry = new RtsFhirEntry
+        {
+            Resource = new RtsFhirOrganization
+            {
+                Id = "ORG-001",
+                Identifier = new List<RtsFhirIdentifier>(), // Identifier[0] => throws
+                Meta = new RtsFhirMeta { LastUpdated = DateTime.UtcNow },
+                Active = true,
+                Name = "Test Org",
+                Address = new List<RtsFhirAddress>(),
+                Type = new List<RtsFhirType>(),
+                Extension = new List<RtsFhirExtension>()
+            }
+        };
+
+        // Act
+        var result = sut.TransformOrganisationAndRoles(entry);
+
+        // Assert
+        result.ShouldNotBeNull();
+        result.RtsOrganisation.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task UpdateSponsorOrganisations_WhenOrganisationDisabled_DisablesAndAudits()
+    {
+        // Arrange
+        const string orgId = "87795";
+
+        var incoming = new Organisation
+        {
+            Id = orgId,
+            Name = "Incoming Org",
+            Status = false, // disabled org
+            Roles = new List<OrganisationRole>
+            {
+                new() { Id = OrganisationRoles.Sponsor, Status = "active" }
+            }
+        };
+
+        var existing = new Organisation
+        {
+            Id = orgId,
+            Name = "Existing Org",
+            Status = true,
+            Roles = new List<OrganisationRole>
+            {
+                new() { Id = OrganisationRoles.Sponsor, Status = "active" }
+            }
+        };
+
+        Mocker.GetMock<IOrganisationRepository>()
+            .Setup(r => r.GetById(It.IsAny<OrganisationSpecification>()))
+            .ReturnsAsync(existing);
+
+        var sponsorOrgService = Mocker.GetMock<ISponsorOrganisationService>();
+        sponsorOrgService.Setup(s => s.DisableSponsorOrganisation(orgId)).Returns(Task.CompletedTask);
+
+        var auditService = Mocker.GetMock<IAuditService>();
+        auditService.Setup(a => a.DatabaseSponsorOrganisationDisabled(existing.Name!)).Returns(Task.CompletedTask);
+
+        var sut = CreateSut();
+
+        // Act
+        var count = await sut.UpdateSponsorOrganisations(new[] { incoming });
+
+        // Assert
+        count.ShouldBe(1);
+
+        sponsorOrgService.Verify(s => s.DisableSponsorOrganisation(orgId), Times.Once);
+        sponsorOrgService.Verify(s => s.EnableSponsorOrganisation(It.IsAny<string>()), Times.Never);
+
+        auditService.Verify(a => a.DatabaseSponsorOrganisationDisabled(existing.Name!), Times.Once);
+        auditService.Verify(a => a.DatabaseSponsorOrganisationEnabled(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateSponsorOrganisations_WhenStatusChangesToTerminated_CallsDisableAndAudits()
+    {
+        // Arrange
+        const string orgId = "87795";
+
+        var incoming = new Organisation
+        {
+            Id = orgId,
+            Name = "Incoming Org",
+            Status = true,
+            Roles = new List<OrganisationRole>
+            {
+                new() { Id = OrganisationRoles.Sponsor, Status = "terminated" }
+            }
+        };
+
+        var existing = new Organisation
+        {
+            Id = orgId,
+            Name = "Existing Org",
+            Status = true,
+            Roles = new List<OrganisationRole>
+            {
+                new() { Id = OrganisationRoles.Sponsor, Status = "active" }
+            }
+        };
+
+        Mocker.GetMock<IOrganisationRepository>()
+            .Setup(r => r.GetById(It.IsAny<OrganisationSpecification>()))
+            .ReturnsAsync(existing);
+
+        var sponsorOrgService = Mocker.GetMock<ISponsorOrganisationService>();
+        sponsorOrgService.Setup(s => s.DisableSponsorOrganisation(orgId)).Returns(Task.CompletedTask);
+
+        var auditService = Mocker.GetMock<IAuditService>();
+        auditService.Setup(a => a.DatabaseSponsorOrganisationDisabled(existing.Name!)).Returns(Task.CompletedTask);
+
+        var sut = CreateSut();
+
+        // Act
+        await sut.UpdateSponsorOrganisations(new[] { incoming });
+
+        // Assert
+        sponsorOrgService.Verify(s => s.DisableSponsorOrganisation(orgId), Times.Once);
+        sponsorOrgService.Verify(s => s.EnableSponsorOrganisation(It.IsAny<string>()), Times.Never);
+
+        auditService.Verify(a => a.DatabaseSponsorOrganisationDisabled(existing.Name!), Times.Once);
+        auditService.Verify(a => a.DatabaseSponsorOrganisationEnabled(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateSponsorOrganisations_WhenRoleStatusUnknown_DoesNothing()
+    {
+        // Arrange
+        const string orgId = "87795";
+
+        var incoming = new Organisation
+        {
+            Id = orgId,
+            Status = true,
+            Roles = new List<OrganisationRole>
+            {
+                new() { Id = OrganisationRoles.Sponsor, Status = "pending" } // unknown
+            }
+        };
+
+        var existing = new Organisation
+        {
+            Id = orgId,
+            Status = true,
+            Roles = new List<OrganisationRole>
+            {
+                new() { Id = OrganisationRoles.Sponsor, Status = "active" }
+            }
+        };
+
+        Mocker.GetMock<IOrganisationRepository>()
+            .Setup(r => r.GetById(It.IsAny<OrganisationSpecification>()))
+            .ReturnsAsync(existing);
+
+        var sponsorOrgService = Mocker.GetMock<ISponsorOrganisationService>();
+        var auditService = Mocker.GetMock<IAuditService>();
+
+        var sut = CreateSut();
+
+        // Act
+        await sut.UpdateSponsorOrganisations(new[] { incoming });
+
+        // Assert
+        sponsorOrgService.Verify(s => s.EnableSponsorOrganisation(It.IsAny<string>()), Times.Never);
+        sponsorOrgService.Verify(s => s.DisableSponsorOrganisation(It.IsAny<string>()), Times.Never);
+        sponsorOrgService.VerifyNoOtherCalls();
+
+        auditService.Verify(a => a.DatabaseSponsorOrganisationEnabled(It.IsAny<string>()), Times.Never);
+        auditService.Verify(a => a.DatabaseSponsorOrganisationDisabled(It.IsAny<string>()), Times.Never);
+    }
+
+    private static RtsFhirExtension BuildRoleExtension(
+        string roleId,
+        string roleStatus,
+        string roleName,
+        int scoper,
+        string startDate)
+    {
+        return new RtsFhirExtension
+        {
+            Extension = new List<RtsFhirSubExtension>
+            {
+                new() { Url = "startDate", ValueDate = startDate },
+                new() { Url = "status", ValueString = roleStatus },
+                new() { Url = "identifier", ValueString = roleId },
+                new() { Url = "name", ValueString = roleName },
+                new()
+                {
+                    Url = "scoper",
+                    ValueReference = new RtsFhirValueReference { Reference = $"Organisation/{scoper}" }
+                }
+            }
+        };
+    }
+
+    private static RtsFhirEntry BuildValidFhirEntry(
+        string orgId,
+        string oid,
+        string roleId,
+        string roleStatus,
+        string roleName,
+        int scoper)
+    {
+        return new RtsFhirEntry
+        {
+            Resource = new RtsFhirOrganization
+            {
+                Id = orgId,
+                Identifier = new List<RtsFhirIdentifier> { new() { Value = oid } },
+                Meta = new RtsFhirMeta { LastUpdated = DateTime.UtcNow },
+                Active = true,
+                Name = "Test Organisation",
+                Address = new List<RtsFhirAddress> { new() { Text = "123 Fake Street", Country = "UK" } },
+                Type = new List<RtsFhirType>
+                {
+                    new()
+                    {
+                        Text = "Gov",
+                        Coding = new List<RtsFhirCoding> { new() { Code = "GOV001" } }
+                    }
+                },
+                Extension = new List<RtsFhirExtension>
+                {
+                    BuildRoleExtension(
+                        roleId: roleId,
+                        roleStatus: roleStatus,
+                        roleName: roleName,
+                        scoper: scoper,
+                        startDate: DateTime.UtcNow.ToString("yyyy-MM-dd"))
+                }
+            }
+        };
     }
 }
