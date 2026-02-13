@@ -3,6 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Rsp.RtsImport.Application.Contracts;
 using Rsp.RtsImport.Infrastructure.HttpMessageHandlers;
 using Rsp.RtsImport.Services;
+using Rsp.RtsService.Application.Contracts.Repositories;
+using Rsp.RtsService.Infrastructure.Repositories;
 using IOrganisationService = Rsp.RtsImport.Application.Contracts.IOrganisationService;
 
 namespace Rsp.RtsImport.Startup.Configuration;
@@ -17,6 +19,9 @@ public static class ServicesConfiguration
         services.AddTransient<IOrganisationService, OrganisationsService>();
         services.AddTransient<IOrganisationImportService, OrganisationImportService>();
         services.AddTransient<ITokenService, TokenService>();
+
+        services.AddTransient<IOrganisationRepository, OrganisationRepository>();
+        services.AddTransient<ISponsorOrganisationService, SponsorOrganisationService>();
 
         services.AddTransient<RtsAuthHeadersHandler>();
 

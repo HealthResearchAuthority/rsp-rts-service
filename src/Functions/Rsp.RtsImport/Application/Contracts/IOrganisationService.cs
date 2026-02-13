@@ -15,4 +15,6 @@ public interface IOrganisationService
     Task<int> FetchPageCountAsync(string lastUpdated);
 
     RtsOrganisationAndRole TransformOrganisationAndRoles(RtsFhirEntry entry);
+
+    Task<int> UpdateSponsorOrganisations(IEnumerable<Organisation> items);
 }

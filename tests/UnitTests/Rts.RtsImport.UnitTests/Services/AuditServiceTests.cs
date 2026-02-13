@@ -104,4 +104,61 @@ public class AuditServiceTests : TestServiceBase
         Assert.NotNull(audit);
         Assert.Equal(AuditConstants.FunctionTimerEnded, audit.Description);
     }
+
+    [Fact]
+    public async Task DatabaseSponsorOrganisationUpdateStarted_AddsAuditEntry()
+    {
+        await _service.DatabaseSponsorOrganisationUpdateStarted();
+
+        var audit = await _context.Audit.FirstOrDefaultAsync();
+        Assert.NotNull(audit);
+        Assert.Equal(AuditConstants.DatabaseSponsorOrganisationUpdateStarted, audit.Description);
+    }
+
+    [Fact]
+    public async Task DatabaseSponsorOrganisationUpdateCompleted_AddsAuditEntry()
+    {
+        var count = 17;
+        await _service.DatabaseSponsorOrganisationUpdateCompleted(count);
+
+        var audit = await _context.Audit.FirstOrDefaultAsync();
+        Assert.NotNull(audit);
+        Assert.Equal(string.Format(AuditConstants.DatabaseSponsorOrganisationUpdateCompleted, count), audit.Description);
+    }
+
+    [Fact]
+    public async Task DatabaseSponsorOrganisationDisabled_AddsFormattedAuditEntry()
+    {
+        // Arrange
+        const string sponsorOrganisation = "ORG-123";
+
+        // Act
+        await _service.DatabaseSponsorOrganisationDisabled(sponsorOrganisation);
+
+        // Assert
+        var audit = await _context.Audit.FirstOrDefaultAsync();
+        Assert.NotNull(audit);
+
+        Assert.Equal(
+            string.Format(AuditConstants.DatabaseSponsorOrganisationDisabled, sponsorOrganisation),
+            audit.Description);
+    }
+
+    [Fact]
+    public async Task DatabaseSponsorOrganisationEnabled_AddsFormattedAuditEntry()
+    {
+        // Arrange
+        const string sponsorOrganisation = "ORG-456";
+
+        // Act
+        await _service.DatabaseSponsorOrganisationEnabled(sponsorOrganisation);
+
+        // Assert
+        var audit = await _context.Audit.FirstOrDefaultAsync();
+        Assert.NotNull(audit);
+
+        Assert.Equal(
+            string.Format(AuditConstants.DatabaseSponsorOrganisationEnabled, sponsorOrganisation),
+            audit.Description);
+    }
 }

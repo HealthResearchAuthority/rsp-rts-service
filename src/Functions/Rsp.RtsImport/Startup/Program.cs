@@ -1,4 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using Azure.Core;
+using Azure.Identity;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -9,6 +11,7 @@ using Rsp.Logging.Extensions;
 using Rsp.Logging.Interceptors;
 using Rsp.RtsImport.Application.Constants;
 using Rsp.RtsImport.Application.Settings;
+using Rsp.RtsImport.Infrastructure.HttpMessageHandlers;
 using Rsp.RtsImport.Startup.Configuration;
 using Rsp.RtsService.Infrastructure;
 
@@ -35,10 +38,25 @@ public static class Program
             .AddJsonFile("featuresettings.json", true, true)
             .AddEnvironmentVariables();
 
+        builder.Services.Configure<AppSettings>(builder.Configuration.GetSection(nameof(AppSettings)));
+        var appSettings = builder.Configuration.GetSection(nameof(AppSettings)).Get<AppSettings>()!;
+
         // 3) Attach Azure App Configuration in non-Dev
         if (!builder.Environment.IsDevelopment())
         {
             builder.Services.AddAzureAppConfiguration(builder.Configuration);
+        }
+        else
+        {   // Use DefaultAzureCredential in development environment
+            // Need to give access to user's account on API - Or verify if this works with user's
+            // identity You should have these set in your locall settings or environment variables: "AZURE_CLIENT_ID","AZURE_TENANT_ID","AZURE_CLIENT_SECRET"
+            builder.Services.AddSingleton<TokenCredential>(new DefaultAzureCredential());
+        }
+
+        // Only register ManagedIdentityCredential in non-development environments
+        if (!builder.Environment.IsDevelopment())
+        {
+            builder.Services.AddSingleton<TokenCredential>(new ManagedIdentityCredential(appSettings.ManagedIdentityClientID));
         }
 
         // register dependencies
@@ -54,20 +72,17 @@ public static class Program
 
         builder.Services.AddHeaderPropagation(options => options.Headers.Add(RequestHeadersKeys.CorrelationId));
 
-
-        builder.Services.Configure<AppSettings>(builder.Configuration.GetSection(nameof(AppSettings)));
-        var appSettings = builder.Configuration.GetSection(nameof(AppSettings)).Get<AppSettings>()!;
-
+        builder.Services.AddTransient<AuthHeadersHandler>();
         builder.Services.AddHttpClients(appSettings);
 
         // register configurationSettings as singleton
         builder.Services.AddSingleton(appSettings);
 
-        // Creating a feature manager without the use of DI. Injecting IFeatureManager
-        // via DI is appropriate in constructor methods. At the startup, it's
-        // not recommended to call services.BuildServiceProvider and retrieve IFeatureManager
-        // via provider. Instead, the following approach is recommended by creating FeatureManager
-        // with ConfigurationFeatureDefinitionProvider using the existing configuration.
+        // Creating a feature manager without the use of DI. Injecting IFeatureManager via DI is
+        // appropriate in constructor methods. At the startup, it's not recommended to call
+        // services.BuildServiceProvider and retrieve IFeatureManager via provider. Instead, the
+        // following approach is recommended by creating FeatureManager with
+        // ConfigurationFeatureDefinitionProvider using the existing configuration.
         var featureManager = new FeatureManager(new ConfigurationFeatureDefinitionProvider(builder.Configuration));
 
         if (await featureManager.IsEnabledAsync(Features.InterceptedLogging))
