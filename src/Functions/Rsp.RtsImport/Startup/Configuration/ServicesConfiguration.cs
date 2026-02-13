@@ -21,8 +21,6 @@ public static class ServicesConfiguration
         services.AddTransient<ITokenService, TokenService>();
 
         services.AddTransient<IOrganisationRepository, OrganisationRepository>();
-        services.AddTransient<ISponsorOrganisationsRepository, SponsorOrganisationRepository>();
-        services.AddTransient<ISponsorOrganisationAuditTrailRepository, SponsorOrganisationAuditTrailRepository>();
         services.AddTransient<ISponsorOrganisationService, SponsorOrganisationService>();
 
         services.AddTransient<RtsAuthHeadersHandler>();

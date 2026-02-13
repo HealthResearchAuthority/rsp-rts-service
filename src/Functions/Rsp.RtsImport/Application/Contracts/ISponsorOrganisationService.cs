@@ -4,7 +4,7 @@ namespace Rsp.RtsImport.Application.Contracts;
 
 public interface ISponsorOrganisationService
 {
-    Task<SponsorOrganisation> DisableSponsorOrganisation(string rtsId);
+    Task DisableSponsorOrganisation(string rtsId);
 
-    Task<SponsorOrganisation> EnableSponsorOrganisation(string rtsId);
+    Task EnableSponsorOrganisation(string rtsId);
 }

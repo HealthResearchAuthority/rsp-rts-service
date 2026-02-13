@@ -1,32 +1,22 @@
 ﻿using Rsp.RtsImport.Application.Contracts;
+using Rsp.RtsImport.Application.ServiceClients;
 using Rsp.RtsService.Application.Contracts.Repositories;
+using Rsp.RtsService.Application.DTOS;
 using Rsp.RtsService.Application.Specifications;
 using Rsp.RtsService.Domain.Entities;
 
 namespace Rsp.RtsImport.Services;
 
-public class SponsorOrganisationService(
-    ISponsorOrganisationsRepository sponsorOrganisationsRepository,
-    ISponsorOrganisationAuditTrailRepository sponsorOrganisationAuditTrailRepository, IOrganisationRepository organisationRepository)
+public class SponsorOrganisationService(ISponsorOrganisationsServiceClient client)
     : ISponsorOrganisationService
 {
-    public async Task<SponsorOrganisation> DisableSponsorOrganisation(string rtsId)
+    public async Task DisableSponsorOrganisation(string rtsId)
     {
-        var sponsorOrganisation = await sponsorOrganisationsRepository.DisableSponsorOrganisation(rtsId);
-        var organisation = await organisationRepository.GetById(new OrganisationSpecification(rtsId));
-
-        await sponsorOrganisationAuditTrailRepository.LogSponsorOrganisationAuditTrail(sponsorOrganisation, organisation);
-
-        return sponsorOrganisation;
+        await client.DisableSponsorOrganisation(rtsId);
     }
 
-    public async Task<SponsorOrganisation> EnableSponsorOrganisation(string rtsId)
+    public async Task EnableSponsorOrganisation(string rtsId)
     {
-        var sponsorOrganisation = await sponsorOrganisationsRepository.EnableSponsorOrganisation(rtsId);
-        var organisation = await organisationRepository.GetById(new OrganisationSpecification(rtsId));
-
-        await sponsorOrganisationAuditTrailRepository.LogSponsorOrganisationAuditTrail(sponsorOrganisation, organisation);
-
-        return sponsorOrganisation;
+        await client.EnableSponsorOrganisation(rtsId);
     }
 }

@@ -12,7 +12,7 @@ namespace Rsp.RtsImport.Startup.Configuration;
 public static class HttpClientsConfiguration
 {
     /// <summary>
-    ///     Adds the Orchestration service http clients
+    /// Adds the Orchestration service http clients
     /// </summary>
     /// <param name="services">Specifies the contract for a collection of service descriptors</param>
     /// <param name="appSettings">Application settings from appsettings.json</param>
@@ -27,11 +27,16 @@ public static class HttpClientsConfiguration
             .AddRestClient<IRtsAuthorisationServiceClient>()
             .ConfigureHttpClient(client => client.BaseAddress = appSettings.RtsAuthApiBaseUrl);
 
+        services
+            .AddRestClient<ISponsorOrganisationsServiceClient>()
+            .ConfigureHttpClient(client => client.BaseAddress = appSettings.ApplicationsServiceUri)
+            .AddHttpMessageHandler<AuthHeadersHandler>();
+
         return services;
     }
 
     /// <summary>
-    ///     Adds the rest client.
+    /// Adds the rest client.
     /// </summary>
     /// <typeparam name="T">Interface to register as a Refit client</typeparam>
     /// <param name="services">Specifies the contract for a collection of service descriptors</param>
@@ -46,8 +51,9 @@ public static class HttpClientsConfiguration
         var refitSettings = new RefitSettings
         {
             ContentSerializer = new SystemTextJsonContentSerializer(options),
-            // Buffering enabled while we wait for this fix: https://github.com/reactiveui/refit/issues/1099
-            // Otherwise the "Content-Length" won't be set and downstream requests with a body will fail
+            // Buffering enabled while we wait for this fix:
+            // https://github.com/reactiveui/refit/issues/1099 Otherwise the "Content-Length" won't
+            // be set and downstream requests with a body will fail
             Buffered = true
         };
 

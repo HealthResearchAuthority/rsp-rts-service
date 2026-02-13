@@ -61,9 +61,21 @@ public class AuditService(
         await ImportAudit(message);
     }
 
-    public async Task DatabaseSponsorOrganisationUpdateCompleted()
+    public async Task DatabaseSponsorOrganisationUpdateCompleted(int count)
     {
-        var message = string.Format(AuditConstants.DatabaseSponsorOrganisationUpdateCompleted);
+        var message = string.Format(AuditConstants.DatabaseSponsorOrganisationUpdateCompleted, count);
+        await ImportAudit(message);
+    }
+
+    public async Task DatabaseSponsorOrganisationDisabled(string sponsorOrganisation)
+    {
+        var message = string.Format(AuditConstants.DatabaseSponsorOrganisationDisabled, sponsorOrganisation);
+        await ImportAudit(message);
+    }
+
+    public async Task DatabaseSponsorOrganisationEnabled(string sponsorOrganisation)
+    {
+        var message = string.Format(AuditConstants.DatabaseSponsorOrganisationEnabled, sponsorOrganisation);
         await ImportAudit(message);
     }
 

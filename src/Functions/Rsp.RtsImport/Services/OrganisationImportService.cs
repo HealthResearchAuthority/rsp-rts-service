@@ -22,12 +22,6 @@ public class OrganisationImportService(
             var updatesCounter = 0;
             var resultsOrg = resultsOrgAndRoles.Select(x => x.RtsOrganisation);
 
-            await auditService.DatabaseSponsorOrganisationUpdateStarted();
-
-            await organisationService.UpdateSponsorOrganisations(resultsOrg);
-
-            await auditService.DatabaseSponsorOrganisationUpdateCompleted();
-
             await auditService.DatabaseOrganisationInsertStarted();
 
             var saveOrg = await organisationService.UpdateOrganisations(resultsOrg, onlyActive);
@@ -45,6 +39,12 @@ public class OrganisationImportService(
             updatesCounter += saveRole.RecordsUpdated;
 
             await auditService.DatabaseOrganisationRolesInsertCompleted(saveRole.RecordsUpdated);
+
+            await auditService.DatabaseSponsorOrganisationUpdateStarted();
+
+            var sponsorOrganisationsCount = await organisationService.UpdateSponsorOrganisations(resultsOrg);
+
+            await auditService.DatabaseSponsorOrganisationUpdateCompleted(sponsorOrganisationsCount);
 
             return updatesCounter;
         }

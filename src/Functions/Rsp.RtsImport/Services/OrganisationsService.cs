@@ -26,7 +26,8 @@ public class OrganisationsService
     AppSettings appSettings,
     ILogger<OrganisationsService> logger,
     ISponsorOrganisationService sponsorOrganisationService,
-    IOrganisationRepository organisationRepository
+    IOrganisationRepository organisationRepository,
+    IAuditService auditService
 ) : IOrganisationService
 {
     public async Task<DbOperationResult> UpdateOrganisations
@@ -295,7 +296,7 @@ public class OrganisationsService
         }
     }
 
-    public async Task UpdateSponsorOrganisations(IEnumerable<Organisation> items)
+    public async Task<int> UpdateSponsorOrganisations(IEnumerable<Organisation> items)
     {
         var sponsorOrganisations = items
             .SelectMany(o => o.Roles
@@ -304,8 +305,9 @@ public class OrganisationsService
                 {
                     OrganisationId = o.Id,
                     OrganisationName = o.Name,
+                    OrganisationStatus = o.Status,
                     RoleId = r.Id,
-                    Status = r.Status
+                    RoleStatus = r.Status
                 })).ToList();
 
         foreach (var sponsorOrganisation in sponsorOrganisations)
@@ -313,18 +315,33 @@ public class OrganisationsService
             var organsation = await organisationRepository.GetById(new OrganisationSpecification(sponsorOrganisation.OrganisationId));
             var organisationRole = organsation.Roles.First(r => r.Id == OrganisationRoles.Sponsor);
 
-            // IF THE STATUS HAS CHANGED THEN WE WANT TO UPDATE EITHER WAY, IF NOT IGNORE AND CONTNUUE
-            if (!string.Equals(sponsorOrganisation.Status, organisationRole.Status, StringComparison.OrdinalIgnoreCase))
+            // IF THE FULL ORGANISATION HAS BEEN DISABLED THEN DISABLE THE ORG HAS CHANGED THEN WE
+            // WANT TO UPDATE EITHER WAY, IF NOT IGNORE AND CONTNUUE
+            if (!sponsorOrganisation.OrganisationStatus.Value)
             {
-                if (string.Equals(sponsorOrganisation.Status, "active", StringComparison.OrdinalIgnoreCase))
+                await sponsorOrganisationService.DisableSponsorOrganisation(sponsorOrganisation.OrganisationId);
+                await auditService.DatabaseSponsorOrganisationDisabled(organsation.Name);
+            }
+            else
+            {
+                // IF THE ORGANISATION IS ENABLED OR HAS BEEN RE-ENABLED THEN CHECK THE SPONSOR ROLE
+                // IF THE STATUS HAS CHANGED THEN WE WANT TO UPDATE EITHER WAY, IF NOT IGNORE AND CONTNUUE
+                if (!string.Equals(sponsorOrganisation.RoleStatus, organisationRole.Status, StringComparison.OrdinalIgnoreCase))
                 {
-                    await sponsorOrganisationService.EnableSponsorOrganisation(sponsorOrganisation.OrganisationId);
-                }
-                else if (string.Equals(sponsorOrganisation.Status, "terminated", StringComparison.OrdinalIgnoreCase))
-                {
-                    await sponsorOrganisationService.DisableSponsorOrganisation(sponsorOrganisation.OrganisationId);
+                    if (string.Equals(sponsorOrganisation.RoleStatus, "active", StringComparison.OrdinalIgnoreCase))
+                    {
+                        await sponsorOrganisationService.EnableSponsorOrganisation(sponsorOrganisation.OrganisationId);
+                        await auditService.DatabaseSponsorOrganisationEnabled(organsation.Name);
+                    }
+                    else if (string.Equals(sponsorOrganisation.RoleStatus, "terminated", StringComparison.OrdinalIgnoreCase))
+                    {
+                        await sponsorOrganisationService.DisableSponsorOrganisation(sponsorOrganisation.OrganisationId);
+                        await auditService.DatabaseSponsorOrganisationDisabled(organsation.Name);
+                    }
                 }
             }
         }
+
+        return sponsorOrganisations.Count;
     }
 }

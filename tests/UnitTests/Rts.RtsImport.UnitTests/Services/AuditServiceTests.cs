@@ -118,10 +118,11 @@ public class AuditServiceTests : TestServiceBase
     [Fact]
     public async Task DatabaseSponsorOrganisationUpdateCompleted_AddsAuditEntry()
     {
-        await _service.DatabaseSponsorOrganisationUpdateCompleted();
+        var count = 17;
+        await _service.DatabaseSponsorOrganisationUpdateCompleted(count);
 
         var audit = await _context.Audit.FirstOrDefaultAsync();
         Assert.NotNull(audit);
-        Assert.Equal(AuditConstants.DatabaseSponsorOrganisationUpdateCompleted, audit.Description);
+        Assert.Equal(string.Format(AuditConstants.DatabaseSponsorOrganisationUpdateCompleted, count), audit.Description);
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace Rsp.RtsImport.Application.Contracts;
+﻿using Rsp.RtsImport.Application.Constants;
+
+namespace Rsp.RtsImport.Application.Contracts;
 
 public interface IAuditService
 {
@@ -18,7 +20,11 @@ public interface IAuditService
 
     Task DatabaseSponsorOrganisationUpdateStarted();
 
-    Task DatabaseSponsorOrganisationUpdateCompleted();
+    Task DatabaseSponsorOrganisationUpdateCompleted(int count);
+
+    Task DatabaseSponsorOrganisationDisabled(string sponsorOrganisation);
+
+    Task DatabaseSponsorOrganisationEnabled(string sponsorOrganisation);
 
     Task FunctionEnded();
 }

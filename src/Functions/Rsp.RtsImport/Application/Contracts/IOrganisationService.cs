@@ -16,5 +16,5 @@ public interface IOrganisationService
 
     RtsOrganisationAndRole TransformOrganisationAndRoles(RtsFhirEntry entry);
 
-    Task UpdateSponsorOrganisations(IEnumerable<Organisation> items);
+    Task<int> UpdateSponsorOrganisations(IEnumerable<Organisation> items);
 }

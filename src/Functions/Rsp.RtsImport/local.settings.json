@@ -6,8 +6,7 @@
         "RtsTimerSchedule": "0 0 7 * * *"
     },
     "ConnectionStrings": {
-        "RTSDatabaseConnection": "Server=(localdb)\\mssqllocaldb;Database=RtsService;Trusted_Connection=True;MultipleActiveResultSets=true;Connection Timeout=120",
-        "IrasServiceDatabaseConnection": "Server=(localdb)\\mssqllocaldb;Database=FutureIras;Trusted_Connection=True;MultipleActiveResultSets=true"
+        "RTSDatabaseConnection": "Server=(localdb)\\mssqllocaldb;Database=RtsService;Trusted_Connection=True;MultipleActiveResultSets=true;Connection Timeout=120"
     },
     "AppSettings": {
         "AzureAppConfiguration": {

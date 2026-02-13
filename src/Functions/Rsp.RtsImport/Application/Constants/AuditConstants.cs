@@ -16,5 +16,8 @@ public static class AuditConstants
     public const string FunctionTimerEnded = "Function execution completed from timer trigger.";
 
     public const string DatabaseSponsorOrganisationUpdateStarted = "Database Sponsor Organisation update process started.";
-    public const string DatabaseSponsorOrganisationUpdateCompleted = "Database Sponsor Organisation update process completed.";
+
+    public const string DatabaseSponsorOrganisationEnabled = "Database Sponsor Organisation {0} has been enabled.";
+    public const string DatabaseSponsorOrganisationDisabled = "Database Sponsor Organisation {0} has been disabled.";
+    public const string DatabaseSponsorOrganisationUpdateCompleted = "Database Sponsor Organisation update process completed. {0} records updated.";
 }
