@@ -24,11 +24,11 @@ public class AuthHeadersHandler(TokenCredential credential, AppSettings appSetti
     /// <returns>The task object representing the asynchronous operation.</returns>
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        //var accessToken = await credential.GetTokenAsync(
-        //        new TokenRequestContext([appSettings.MicrosoftEntra.Audience]), cancellationToken);
-        //request.Headers.Remove(HeaderNames.Authorization);
-        //request.Headers.Add(HeaderNames.Authorization, $"Bearer {accessToken.Token}");
-        //Console.WriteLine(accessToken.Token);
+        var accessToken = await credential.GetTokenAsync(
+                new TokenRequestContext([appSettings.MicrosoftEntra.Audience]), cancellationToken);
+        request.Headers.Remove(HeaderNames.Authorization);
+        request.Headers.Add(HeaderNames.Authorization, $"Bearer {accessToken.Token}");
+        Console.WriteLine(accessToken.Token);
 
         // Use the token to make the call.
         return await base.SendAsync(request, cancellationToken);
