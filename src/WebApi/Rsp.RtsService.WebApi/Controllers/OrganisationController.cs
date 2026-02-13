@@ -33,7 +33,7 @@ public class OrganisationsController(IOrganisationService orgService) : Controll
     {
         if (name.Length < 3)
         {
-            return BadRequest("Name needs to include minimum 3 characters");
+            return BadRequest("Enter at least 3 characters to search");
         }
         if (pageIndex <= 0)
         {
