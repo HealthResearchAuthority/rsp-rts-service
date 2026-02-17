@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Globalization;
 using EFCore.BulkExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -124,22 +125,36 @@ public class OrganisationsService
         return result;
     }
 
-    public async Task<IEnumerable<RtsOrganisationAndRole>> GetOrganisationsAndRoles(string lastUpdated)
+    public async Task<IEnumerable<RtsOrganisationAndRole>> GetOrganisationsAndRoles(string? lastUpdated)
     {
         int pageSize = appSettings.ApiRequestPageSize != 0 ? appSettings.ApiRequestPageSize : 100;
         int maxConcurrency = appSettings.ApiRequestMaxConcurrency != 0 ? appSettings.ApiRequestMaxConcurrency : 8;
 
+        string? fhirLastUpdated = null;
+
+        if (!string.IsNullOrWhiteSpace(lastUpdated))
+        {
+            fhirLastUpdated = ToFhirLastUpdatedGt(lastUpdated);
+        }
+
         var result = new ConcurrentBag<RtsOrganisationAndRole>();
-        var totalRecords = await FetchPageCountAsync(lastUpdated);
+
+        var totalRecords = await FetchPageCountAsync(fhirLastUpdated);
+        if (totalRecords == 0)
+        {
+            return Enumerable.Empty<RtsOrganisationAndRole>();
+        }
+
         var totalPages = (int)Math.Ceiling(totalRecords / (double)pageSize);
 
-        var pageIndices = Enumerable.Range(0, totalPages);
-
-        await Parallel.ForEachAsync(pageIndices, new ParallelOptions { MaxDegreeOfParallelism = maxConcurrency },
+        await Parallel.ForEachAsync(
+            Enumerable.Range(0, totalPages),
+            new ParallelOptions { MaxDegreeOfParallelism = maxConcurrency },
             async (page, _) =>
             {
                 var offset = page * pageSize;
-                var data = await FetchOrganisationAndRolesAsync(lastUpdated, offset, pageSize);
+                var data = await FetchOrganisationAndRolesAsync(fhirLastUpdated, offset, pageSize);
+
                 foreach (var item in data)
                 {
                     result.Add(item);
@@ -153,10 +168,17 @@ public class OrganisationsService
         return finalResult;
     }
 
-    public async Task<int> FetchPageCountAsync(string lastUpdated)
+    public async Task<int> FetchPageCountAsync(string? lastUpdated)
     {
+        string? fhirLastUpdated = null;
+
+        if (!string.IsNullOrWhiteSpace(lastUpdated))
+        {
+            fhirLastUpdated = ToFhirLastUpdatedGt(lastUpdated);
+        }
+
         ApiResponse<RtsOrganisationsAndRolesResponse>? result =
-            await rtsClient.GetOrganisationsAndRoles(lastUpdated, 0, 1);
+            await rtsClient.GetOrganisationsAndRoles(fhirLastUpdated, 0, 1);
 
         return result?.Content?.Total ?? -1;
     }
@@ -343,5 +365,55 @@ public class OrganisationsService
         }
 
         return sponsorOrganisations.Count;
+    }
+
+    private static string ToFhirLastUpdatedGt(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return "";
+        }
+
+        input = input.Trim();
+
+        // If caller already passed a fully-formed FHIR param like "gt2026-02-02T00:00:00.000Z"
+        // validate/normalise timezone presence by parsing the date portion.
+        if (input.StartsWith("gt", StringComparison.OrdinalIgnoreCase))
+        {
+            var datePart = input[2..].Trim();
+            var parsed = ParseToUtc(datePart);
+            return $"gt{parsed:yyyy-MM-ddTHH:mm:ss.fffZ}";
+        }
+
+        // Otherwise treat as a date/time string and convert
+        var utc = ParseToUtc(input);
+        return $"gt{utc:yyyy-MM-ddTHH:mm:ss.fffZ}";
+    }
+
+    private static DateTime ParseToUtc(string value)
+    {
+        // Prefer DateTimeOffset so we properly handle offsets / Z
+        if (DateTimeOffset.TryParse(
+                value,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+                out var dto))
+        {
+            return dto.UtcDateTime;
+        }
+
+        // Fallback for bare dates like "2026-02-02"
+        if (DateTime.TryParse(
+                value,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+                out var dt))
+        {
+            return DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+        }
+
+        throw new ArgumentException(
+            $"Invalid lastUpdated value '{value}'. Use an ISO date/time like '2026-02-02T00:00:00Z' or pass 'gt...' already formatted.",
+            nameof(value));
     }
 }
