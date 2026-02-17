@@ -168,7 +168,7 @@ public class OrganisationsService
         return finalResult;
     }
 
-    public async Task<int> FetchPageCountAsync(string? lastUpdated)
+    public virtual async Task<int> FetchPageCountAsync(string? lastUpdated)
     {
         string? fhirLastUpdated = null;
 
@@ -285,7 +285,7 @@ public class OrganisationsService
         }
     }
 
-    public async Task<IEnumerable<RtsOrganisationAndRole>> FetchOrganisationAndRolesAsync
+    public virtual async Task<IEnumerable<RtsOrganisationAndRole>> FetchOrganisationAndRolesAsync
     (
         string lastUpdated,
         int offset,

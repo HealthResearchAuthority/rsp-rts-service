@@ -6,9 +6,11 @@ using Moq;
 using Refit;
 using Rsp.RtsImport.Application.Constants;
 using Rsp.RtsImport.Application.Contracts;
+using Rsp.RtsImport.Application.DTO;
 using Rsp.RtsImport.Application.DTO.Responses;
 using Rsp.RtsImport.Application.DTO.Responses.OrganisationsAndRolesDTOs;
 using Rsp.RtsImport.Application.ServiceClients;
+using Rsp.RtsImport.Application.Settings;
 using Rsp.RtsImport.Services;
 using Rsp.RtsService.Application.Contracts.Repositories;
 using Rsp.RtsService.Application.Specifications;
@@ -700,6 +702,117 @@ public class OrganisationsServiceTests : TestServiceBase, IDisposable
         auditService.Verify(a => a.DatabaseSponsorOrganisationDisabled(It.IsAny<string>()), Times.Never);
     }
 
+    [Fact]
+    public async Task GetOrganisationsAndRoles_WhenTotalIsZero_ReturnsEmpty()
+    {
+        // Arrange
+        var mockRtsClient = Mocker.GetMock<IRtsServiceClient>();
+
+        mockRtsClient
+            .Setup(x => x.GetOrganisationsAndRoles(It.IsAny<string>(), 0, 1))
+            .ReturnsAsync(MakeBundleResponse(0));
+
+        var sut = CreateSut();
+
+        // Act
+        var result = await sut.GetOrganisationsAndRoles("2024-01-01");
+
+        // Assert
+        result.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task GetOrganisationsAndRoles_WhenMultiplePages_ReturnsAllResults()
+    {
+        // Arrange
+        var settings = Mocker.Get<AppSettings>();
+        settings.ApiRequestPageSize = 2;
+
+        var mockRtsClient = Mocker.GetMock<IRtsServiceClient>();
+
+        // First call = total count
+        mockRtsClient
+            .Setup(x => x.GetOrganisationsAndRoles(It.IsAny<string>(), 0, 1))
+            .ReturnsAsync(MakeBundleResponse(5));
+
+        // Page 1
+        mockRtsClient
+            .Setup(x => x.GetOrganisationsAndRoles(It.IsAny<string>(), 0, 2))
+            .ReturnsAsync(MakeBundleResponse(5));
+
+        // Page 2
+        mockRtsClient
+            .Setup(x => x.GetOrganisationsAndRoles(It.IsAny<string>(), 2, 2))
+            .ReturnsAsync(MakeBundleResponse(5));
+
+        // Page 3
+        mockRtsClient
+            .Setup(x => x.GetOrganisationsAndRoles(It.IsAny<string>(), 4, 2))
+            .ReturnsAsync(MakeBundleResponse(5));
+
+        var sut = CreateSut();
+
+        // Act
+        var result = await sut.GetOrganisationsAndRoles("2024-01-01");
+
+        // Assert
+        mockRtsClient.Verify(x => x.GetOrganisationsAndRoles(It.IsAny<string>(), 0, 2), Times.Once);
+        mockRtsClient.Verify(x => x.GetOrganisationsAndRoles(It.IsAny<string>(), 2, 2), Times.Once);
+        mockRtsClient.Verify(x => x.GetOrganisationsAndRoles(It.IsAny<string>(), 4, 2), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetOrganisationsAndRoles_WhenLastUpdatedIsNull_PassesNullToClient()
+    {
+        // Arrange
+        var settings = Mocker.Get<AppSettings>();
+        settings.ApiRequestPageSize = 100;
+
+        var mockRtsClient = Mocker.GetMock<IRtsServiceClient>();
+
+        mockRtsClient
+            .Setup(x => x.GetOrganisationsAndRoles(null, 0, 1))
+            .ReturnsAsync(MakeBundleResponse(1));
+
+        mockRtsClient
+            .Setup(x => x.GetOrganisationsAndRoles(null, 0, 100))
+            .ReturnsAsync(MakeBundleResponse(1));
+
+        var sut = CreateSut();
+
+        // Act
+        await sut.GetOrganisationsAndRoles(null);
+
+        // Assert
+        mockRtsClient.Verify(x => x.GetOrganisationsAndRoles(null, 0, 1), Times.Once);
+        mockRtsClient.Verify(x => x.GetOrganisationsAndRoles(null, 0, 100), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetOrganisationsAndRoles_WhenDateProvided_FormatsGtParameter()
+    {
+        // Arrange
+        var mockRtsClient = Mocker.GetMock<IRtsServiceClient>();
+
+        mockRtsClient
+            .Setup(x => x.GetOrganisationsAndRoles(It.Is<string>(s =>
+                s.StartsWith("gt") && s.EndsWith("Z")), 0, 1))
+            .ReturnsAsync(MakeBundleResponse(0));
+
+        var sut = CreateSut();
+
+        // Act
+        await sut.GetOrganisationsAndRoles("2026-02-02");
+
+        // Assert
+        mockRtsClient.Verify(x =>
+                x.GetOrganisationsAndRoles(
+                    It.Is<string>(s => s.StartsWith("gt") && s.EndsWith("Z")),
+                    0,
+                    1),
+            Times.Once);
+    }
+
     private static RtsFhirExtension BuildRoleExtension(
         string roleId,
         string roleStatus,
@@ -761,5 +874,22 @@ public class OrganisationsServiceTests : TestServiceBase, IDisposable
                 }
             }
         };
+    }
+
+    private static ApiResponse<RtsOrganisationsAndRolesResponse> MakeBundleResponse(
+        int total,
+        params RtsFhirEntry[] entries)
+    {
+        var bundle = new RtsOrganisationsAndRolesResponse
+        {
+            ResourceType = "Bundle",
+            Id = Guid.NewGuid().ToString(),
+            Type = "searchset",
+            Total = total,
+            Meta = new RtsFhirMeta(),
+            Entry = entries
+        };
+
+        return ApiResponseHelpers.CreateRtsOrganisationsAndRolesResponse(bundle);
     }
 }
