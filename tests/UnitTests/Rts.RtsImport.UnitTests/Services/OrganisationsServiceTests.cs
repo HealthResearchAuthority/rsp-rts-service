@@ -119,10 +119,69 @@ public class OrganisationsServiceTests : TestServiceBase, IDisposable
     }
 
     [Fact]
-    public async Task FetchPageCountAsync_ReturnsCorrectTotal()
+    public async Task FetchPageCountAsync_WhenValidDateString_FormatsAndReturnsTotal()
     {
         // Arrange
         const int expectedTotal = 42;
+
+        var content = new RtsOrganisationsAndRolesResponse { Total = expectedTotal };
+        var mockResponse = ApiResponseHelpers.CreateRtsOrganisationsAndRolesResponse(content);
+
+        var mockRtsClient = Mocker.GetMock<IRtsServiceClient>();
+        mockRtsClient
+            .Setup(x => x.GetOrganisationsAndRoles(It.Is<string>(s => s.StartsWith("gt", StringComparison.OrdinalIgnoreCase)), 0, 1))
+            .ReturnsAsync(mockResponse);
+
+        var sut = CreateSut();
+
+        // Act
+        var result = await sut.FetchPageCountAsync("2024-01-01");
+
+        // Assert
+        result.ShouldBe(expectedTotal);
+        mockRtsClient.Verify(
+            x => x.GetOrganisationsAndRoles(
+                It.Is<string>(s => s.StartsWith("gt", StringComparison.OrdinalIgnoreCase) && s.EndsWith("Z", StringComparison.OrdinalIgnoreCase)),
+                0,
+                1),
+            Times.Once);
+
+        mockRtsClient.VerifyNoOtherCalls();
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task FetchPageCountAsync_WhenNullOrEmptyOrWhitespace_DoesNotSendLastUpdatedAndReturnsTotal(string? lastUpdated)
+    {
+        // Arrange
+        const int expectedTotal = 10;
+
+        var content = new RtsOrganisationsAndRolesResponse { Total = expectedTotal };
+        var mockResponse = ApiResponseHelpers.CreateRtsOrganisationsAndRolesResponse(content);
+
+        var mockRtsClient = Mocker.GetMock<IRtsServiceClient>();
+        mockRtsClient
+            .Setup(x => x.GetOrganisationsAndRoles(null, 0, 1))
+            .ReturnsAsync(mockResponse);
+
+        var sut = CreateSut();
+
+        // Act
+        var result = await sut.FetchPageCountAsync(lastUpdated);
+
+        // Assert
+        result.ShouldBe(expectedTotal);
+        mockRtsClient.Verify(x => x.GetOrganisationsAndRoles(null, 0, 1), Times.Once);
+        mockRtsClient.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task FetchPageCountAsync_WhenAlreadyGtValue_NormalisesAndReturnsTotal()
+    {
+        // Arrange
+        const int expectedTotal = 7;
 
         var content = new RtsOrganisationsAndRolesResponse { Total = expectedTotal };
         var mockResponse = ApiResponseHelpers.CreateRtsOrganisationsAndRolesResponse(content);
@@ -135,10 +194,100 @@ public class OrganisationsServiceTests : TestServiceBase, IDisposable
         var sut = CreateSut();
 
         // Act
-        var result = await sut.FetchPageCountAsync("2024-01-01");
+        var result = await sut.FetchPageCountAsync("gt2026-02-02T00:00:00Z");
 
         // Assert
         result.ShouldBe(expectedTotal);
+
+        mockRtsClient.Verify(
+            x => x.GetOrganisationsAndRoles(
+                It.Is<string>(s =>
+                    s.StartsWith("gt", StringComparison.OrdinalIgnoreCase) &&
+                    s.EndsWith("Z", StringComparison.OrdinalIgnoreCase) &&
+                    s.Contains(".") // will be .fff in your formatter
+                ),
+                0,
+                1),
+            Times.Once);
+
+        mockRtsClient.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task FetchPageCountAsync_WhenInvalidDate_ThrowsAndDoesNotCallClient()
+    {
+        // Arrange
+        var mockRtsClient = Mocker.GetMock<IRtsServiceClient>();
+        var sut = CreateSut();
+
+        // Act
+        var ex = await Should.ThrowAsync<ArgumentException>(() => sut.FetchPageCountAsync("not-a-date"));
+
+        // Assert
+        ex.Message.ShouldContain("Invalid");
+        mockRtsClient.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task FetchPageCountAsync_WhenApiResponseIsNull_ReturnsMinusOne()
+    {
+        // Arrange
+        var mockRtsClient = Mocker.GetMock<IRtsServiceClient>();
+        mockRtsClient
+            .Setup(x => x.GetOrganisationsAndRoles(It.IsAny<string>(), 0, 1))
+            .ReturnsAsync((ApiResponse<RtsOrganisationsAndRolesResponse>)null!);
+
+        var sut = CreateSut();
+
+        // Act
+        var result = await sut.FetchPageCountAsync("2024-01-01");
+
+        // Assert
+        result.ShouldBe(-1);
+        mockRtsClient.Verify(x => x.GetOrganisationsAndRoles(It.IsAny<string>(), 0, 1), Times.Once);
+        mockRtsClient.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task FetchPageCountAsync_WhenContentIsNull_ReturnsMinusOne()
+    {
+        // Arrange
+        var mockResponse = ApiResponseHelpers.CreateRtsOrganisationsAndRolesResponse(content: null);
+
+        var mockRtsClient = Mocker.GetMock<IRtsServiceClient>();
+        mockRtsClient
+            .Setup(x => x.GetOrganisationsAndRoles(It.IsAny<string>(), 0, 1))
+            .ReturnsAsync(mockResponse);
+
+        var sut = CreateSut();
+
+        // Act
+        var result = await sut.FetchPageCountAsync("2024-01-01");
+
+        // Assert
+        result.ShouldBe(-1);
+        mockRtsClient.Verify(x => x.GetOrganisationsAndRoles(It.IsAny<string>(), 0, 1), Times.Once);
+        mockRtsClient.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task FetchPageCountAsync_WhenOffsetAndCountAreFixed_AlwaysCallsWithZeroAndOne()
+    {
+        // Arrange
+        var content = new RtsOrganisationsAndRolesResponse { Total = 1 };
+        var mockResponse = ApiResponseHelpers.CreateRtsOrganisationsAndRolesResponse(content);
+
+        var mockRtsClient = Mocker.GetMock<IRtsServiceClient>();
+        mockRtsClient
+            .Setup(x => x.GetOrganisationsAndRoles(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()))
+            .ReturnsAsync(mockResponse);
+
+        var sut = CreateSut();
+
+        // Act
+        await sut.FetchPageCountAsync("2024-01-01");
+
+        // Assert
         mockRtsClient.Verify(x => x.GetOrganisationsAndRoles(It.IsAny<string>(), 0, 1), Times.Once);
         mockRtsClient.VerifyNoOtherCalls();
     }
