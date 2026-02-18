@@ -53,11 +53,21 @@ public static class Program
         builder.Services.Configure<AppSettings>(builder.Configuration.GetSection(nameof(AppSettings)));
         var appSettings = builder.Configuration.GetSection(nameof(AppSettings)).Get<AppSettings>()!;
 
-        // Only register ManagedIdentityCredential in non-development environments
-        if (!builder.Environment.IsDevelopment())
+        builder.Services.AddSingleton<TokenCredential>(_ =>
         {
-            builder.Services.AddSingleton<TokenCredential>(new ManagedIdentityCredential(appSettings.ManagedIdentityClientID));
-        }
+            var opts = new DefaultAzureCredentialOptions
+            {
+                ExcludeInteractiveBrowserCredential = true,
+            };
+
+            // If present, this pins DefaultAzureCredential to a user-assigned identity when in Azure
+            if (!string.IsNullOrWhiteSpace(appSettings.ManagedIdentityClientID))
+            {
+                opts.ManagedIdentityClientId = appSettings.ManagedIdentityClientID;
+            }
+
+            return new DefaultAzureCredential(opts);
+        });
 
         // register dependencies
         builder.Services.AddMemoryCache();
