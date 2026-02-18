@@ -22,14 +22,16 @@ public class OrganisationsController(IOrganisationService orgService) : Controll
     /// <param name="sort">Sort direction: "asc" or "desc".</param>
     /// <param name="sortField">Sort field: "name", "country", or "isactive".</param>
     [HttpGet("searchByName")]
-    public async Task<ActionResult<OrganisationSearchResponse>> SearchByName(
+    public async Task<ActionResult<OrganisationSearchResponse>> SearchByName
+    (
         string name,
         int pageIndex = 1,
         int? pageSize = null,
         string? role = null,
         [FromQuery] string[]? countries = null,
         string sort = "asc",
-        string sortField = "name")
+        string sortField = "name"
+    )
     {
         if (name.Length < 3)
         {
