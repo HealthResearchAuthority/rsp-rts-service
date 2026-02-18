@@ -1,4 +1,4 @@
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.Azure.Functions.Worker.Builder;
@@ -53,11 +53,42 @@ public static class Program
         builder.Services.Configure<AppSettings>(builder.Configuration.GetSection(nameof(AppSettings)));
         var appSettings = builder.Configuration.GetSection(nameof(AppSettings)).Get<AppSettings>()!;
 
-        // Only register ManagedIdentityCredential in non-development environments
-        if (!builder.Environment.IsDevelopment())
+        // ✅ ONE TokenCredential registration, chosen by environment
+        builder.Services.AddSingleton<TokenCredential>(_ =>
         {
-            builder.Services.AddSingleton<TokenCredential>(new ManagedIdentityCredential(appSettings.ManagedIdentityClientID));
-        }
+            if (builder.Environment.IsDevelopment())
+            {
+                // Prefer local.settings.json Values first
+                var clientId = builder.Configuration["Values:AZURE_CLIENT_ID"]
+                               ?? builder.Configuration["AZURE_CLIENT_ID"];
+                var tenantId = builder.Configuration["Values:AZURE_TENANT_ID"]
+                               ?? builder.Configuration["AZURE_TENANT_ID"];
+                var clientSecret = builder.Configuration["Values:AZURE_CLIENT_SECRET"]
+                                   ?? builder.Configuration["AZURE_CLIENT_SECRET"];
+
+                if (string.IsNullOrWhiteSpace(clientId) ||
+                    string.IsNullOrWhiteSpace(tenantId) ||
+                    string.IsNullOrWhiteSpace(clientSecret))
+                {
+                    throw new InvalidOperationException(
+                        "Missing AZURE_CLIENT_ID / AZURE_TENANT_ID / AZURE_CLIENT_SECRET in local.settings.json (Values:...) or environment variables.");
+                }
+
+                // Uses EXACTLY what's in local.settings.json (no stale machine env vars)
+                return new ClientSecretCredential(tenantId, clientId, clientSecret);
+            }
+
+            // Non-dev: Managed Identity
+            return new ManagedIdentityCredential(appSettings.ManagedIdentityClientID);
+        });
+
+        builder.Services.AddSingleton(appSettings);
+
+        builder.Services.ConfigureHttpClientDefaults(http =>
+        {
+            // Turn on resilience by default
+            http.AddStandardResilienceHandler(options => options.Retry.MaxRetryAttempts = 3);
+        });
 
         // register dependencies
         builder.Services.AddMemoryCache();
@@ -74,9 +105,6 @@ public static class Program
 
         builder.Services.AddTransient<AuthHeadersHandler>();
         builder.Services.AddHttpClients(appSettings);
-
-        // register configurationSettings as singleton
-        builder.Services.AddSingleton(appSettings);
 
         // Creating a feature manager without the use of DI. Injecting IFeatureManager via DI is
         // appropriate in constructor methods. At the startup, it's not recommended to call
