@@ -38,9 +38,6 @@ public static class Program
             .AddJsonFile("featuresettings.json", true, true)
             .AddEnvironmentVariables();
 
-        builder.Services.Configure<AppSettings>(builder.Configuration.GetSection(nameof(AppSettings)));
-        var appSettings = builder.Configuration.GetSection(nameof(AppSettings)).Get<AppSettings>()!;
-
         // 3) Attach Azure App Configuration in non-Dev
         if (!builder.Environment.IsDevelopment())
         {
@@ -52,6 +49,9 @@ public static class Program
             // identity You should have these set in your locall settings or environment variables: "AZURE_CLIENT_ID","AZURE_TENANT_ID","AZURE_CLIENT_SECRET"
             builder.Services.AddSingleton<TokenCredential>(new DefaultAzureCredential());
         }
+
+        builder.Services.Configure<AppSettings>(builder.Configuration.GetSection(nameof(AppSettings)));
+        var appSettings = builder.Configuration.GetSection(nameof(AppSettings)).Get<AppSettings>()!;
 
         // Only register ManagedIdentityCredential in non-development environments
         if (!builder.Environment.IsDevelopment())
