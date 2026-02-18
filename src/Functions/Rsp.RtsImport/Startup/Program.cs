@@ -79,7 +79,7 @@ public static class Program
             }
 
             // Non-dev: Managed Identity
-            return new ManagedIdentityCredential(appSettings.ManagedIdentityClientID);
+            return new ManagedIdentityCredential(appSettings.ManagedIdentityRtsClientID);
         });
 
         builder.Services.AddSingleton(appSettings);

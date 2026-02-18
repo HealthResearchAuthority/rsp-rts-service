@@ -43,5 +43,5 @@ public class AppSettings
     /// Gets or sets Managed Identity Client ID to enabling the framework to fetch a token for
     /// accessing Applications Service.
     /// </summary>
-    public string ManagedIdentityClientID { get; set; } = null!;
+    public string ManagedIdentityRtsClientID { get; set; } = null!;
 }
