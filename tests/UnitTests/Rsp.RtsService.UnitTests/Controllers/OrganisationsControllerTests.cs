@@ -116,4 +116,44 @@ public class OrganisationsControllerTests : TestServiceBase
         var ok = result.Result.ShouldBeOfType<OkObjectResult>();
         ok.Value.ShouldBe(response);
     }
+
+    [Theory]
+    [AutoData]
+    public async Task SearchOrganisations_ShouldReturnOk_WhenValid(
+        OrganisationsSearchRequest request,
+        OrganisationSearchResponse response)
+    {
+        const int pageIndex = 1;
+        int? pageSize = 10;
+
+        var mock = Mocker.GetMock<IOrganisationService>();
+        mock.Setup(s => s.SearchOrganisations(request, pageIndex, pageSize, "name", "asc"))
+            .ReturnsAsync(response);
+
+        var result = await _controller.SearchOrganisations(request, pageIndex, pageSize);
+
+        var ok = result.Result.ShouldBeOfType<OkObjectResult>();
+        ok.Value.ShouldBe(response);
+    }
+
+    [Theory]
+    [AutoData]
+    public async Task SearchOrganisations_ShouldReturnOk_WithProvidedSortParameters(
+        OrganisationsSearchRequest request,
+        OrganisationSearchResponse response)
+    {
+        const int pageIndex = 2;
+        int? pageSize = 25;
+        const string sort = "desc";
+        const string sortField = "country";
+
+        var mock = Mocker.GetMock<IOrganisationService>();
+        mock.Setup(s => s.SearchOrganisations(request, pageIndex, pageSize, sortField, sort))
+            .ReturnsAsync(response);
+
+        var result = await _controller.SearchOrganisations(request, pageIndex, pageSize, sort, sortField);
+
+        var ok = result.Result.ShouldBeOfType<OkObjectResult>();
+        ok.Value.ShouldBe(response);
+    }
 }

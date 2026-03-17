@@ -23,13 +23,15 @@ public interface IOrganisationService
     /// <param name="countries">Optional list of CountryName values to filter by.</param>
     /// <param name="sortField">"name", "country", or "isactive". Defaults to "name".</param>
     /// <param name="sortDirection">"asc" or "desc". Defaults to "asc".</param>
-    Task<OrganisationSearchResponse> GetAll(
+    Task<OrganisationSearchResponse> GetAll
+    (
         int pageIndex,
         int? pageSize,
         string? role = null,
         string[]? countries = null,
         string sortField = "name",
-        string sortDirection = "asc");
+        string sortDirection = "asc"
+    );
 
     /// <summary>
     ///     Searches for organisations by name, with optional role filtering, multi-country filter, sorting, and paging.
@@ -41,12 +43,29 @@ public interface IOrganisationService
     /// <param name="countries">Optional list of CountryName values to filter by.</param>
     /// <param name="sortField">"name", "country", or "isactive". Defaults to "name".</param>
     /// <param name="sortDirection">"asc" or "desc". Defaults to "asc".</param>
-    Task<OrganisationSearchResponse> SearchByName(
+    Task<OrganisationSearchResponse> SearchByName
+    (
         string name,
         int pageIndex,
         int? pageSize,
         string? role = null,
         string[]? countries = null,
         string sortField = "name",
-        string sortDirection = "asc");
+        string sortDirection = "asc"
+    );
+
+    /// <summary>
+    ///     Searches for organisations by name, with optional role filtering, multi-country filter, sorting, and paging.
+    /// </summary>
+    /// <param name="searchRequest">The search request containing the search criteria.</param>
+    /// <param name="sortField">"name", "country", or "isactive". Defaults to "name".</param>
+    /// <param name="sortDirection">"asc" or "desc". Defaults to "asc".</param>
+    Task<OrganisationSearchResponse> SearchOrganisations
+    (
+       OrganisationsSearchRequest searchRequest,
+       int pageIndex,
+        int? pageSize,
+        string sortField = "name",
+        string sortDirection = "asc"
+    );
 }

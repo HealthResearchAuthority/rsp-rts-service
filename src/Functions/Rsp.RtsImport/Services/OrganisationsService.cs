@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Globalization;
 using EFCore.BulkExtensions;
 using Microsoft.EntityFrameworkCore;
@@ -339,7 +338,7 @@ public class OrganisationsService
 
             // IF THE FULL ORGANISATION HAS BEEN DISABLED THEN DISABLE THE ORG HAS CHANGED THEN WE
             // WANT TO UPDATE EITHER WAY, IF NOT IGNORE AND CONTNUUE
-            if (!sponsorOrganisation.OrganisationStatus.Value)
+            if (!sponsorOrganisation.OrganisationStatus)
             {
                 await sponsorOrganisationService.DisableSponsorOrganisation(sponsorOrganisation.OrganisationId);
                 await auditService.DatabaseSponsorOrganisationDisabled(organsation.Name);

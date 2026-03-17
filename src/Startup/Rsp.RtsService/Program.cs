@@ -25,7 +25,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder
     .Configuration
     .AddJsonFile("logsettings.json")
-    .AddEnvironmentVariables(); ;
+    .AddEnvironmentVariables();
 
 builder.AddServiceDefaults();
 
@@ -46,7 +46,7 @@ if (!builder.Environment.IsDevelopment())
     builder.Configuration.AddAzureAppConfiguration(
         options =>
     {
-            var credentials = new ManagedIdentityCredential(appSettings!.AzureAppConfiguration.IdentityClientID);
+        var credentials = new ManagedIdentityCredential(appSettings!.AzureAppConfiguration.IdentityClientID);
 
         options.Connect
             (
@@ -61,7 +61,7 @@ if (!builder.Environment.IsDevelopment())
                     .Register("AppSettings:Sentinel", AppSettings.ServiceLabel, refreshAll: true)
                 .SetRefreshInterval(new TimeSpan(0, 0, 15))
             );
-        }
+    }
     );
 
     services.AddAzureAppConfiguration();
@@ -83,7 +83,6 @@ builder
 // TODO: if you using .NET Aspire and have added the ServiceDefaults project
 // uncomment the following line
 // builder.AddServiceDefaults()
-
 
 // adds sql server database context
 services.AddDatabase(configuration);

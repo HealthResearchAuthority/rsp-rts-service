@@ -23,25 +23,29 @@ public class OrganisationService(IOrganisationRepository repository) : IOrganisa
     /// <param name="countries">Optional list of CountryName values to filter by.</param>
     /// <param name="sortField">"name", "country", or "isactive". Defaults to "name".</param>
     /// <param name="sortDirection">"asc" or "desc". Defaults to "asc".</param>
-    public async Task<OrganisationSearchResponse> GetAll(
+    public async Task<OrganisationSearchResponse> GetAll
+    (
         int pageIndex,
         int? pageSize,
         string? role = null,
         string[]? countries = null,
         string sortField = "name",
-        string sortDirection = "asc")
+        string sortDirection = "asc"
+    )
     {
         if (pageIndex < 1)
         {
             pageIndex = 1;
         }
 
-        var spec = new OrganisationSpecification(
+        var spec = new OrganisationSpecification
+        (
             null,
             role,
             countries,
             sortField,
-            sortDirection);
+            sortDirection
+        );
 
         var (organisations, count) = await repository.GetBySpecification(spec, pageIndex, pageSize);
 
@@ -62,28 +66,69 @@ public class OrganisationService(IOrganisationRepository repository) : IOrganisa
     /// <param name="countries">Optional list of CountryName values to filter by.</param>
     /// <param name="sortField">"name", "country", or "isactive". Defaults to "name".</param>
     /// <param name="sortDirection">"asc" or "desc". Defaults to "asc".</param>
-    public async Task<OrganisationSearchResponse> SearchByName(
+    public async Task<OrganisationSearchResponse> SearchByName
+    (
         string name,
         int pageIndex,
         int? pageSize,
         string? role = null,
         string[]? countries = null,
         string sortField = "name",
-        string sortDirection = "asc")
+        string sortDirection = "asc"
+    )
     {
         if (pageIndex < 1)
         {
             pageIndex = 1;
         }
 
-        var spec = new OrganisationSpecification(
+        var spec = new OrganisationSpecification
+        (
             name.ToLower(),
             role,
             countries,
             sortField,
-            sortDirection);
+            sortDirection
+        );
 
         var (organisations, count) = await repository.GetBySpecification(spec, pageIndex, pageSize);
+
+        return new OrganisationSearchResponse
+        {
+            Organisations = organisations.Adapt<IEnumerable<SearchOrganisationDto>>(),
+            TotalCount = count
+        };
+    }
+
+    /// <summary>
+    ///     Searches for organisations by name, with optional role filtering, multi-country filter, sorting, and paging.
+    /// </summary>
+    /// <param name="searchRequest">The search request containing the search criteria.</param>
+    /// <param name="sortField">"name", "country", or "isactive". Defaults to "name".</param>
+    /// <param name="sortDirection">"asc" or "desc". Defaults to "asc".</param>
+    public async Task<OrganisationSearchResponse> SearchOrganisations
+    (
+        OrganisationsSearchRequest searchRequest,
+        int pageIndex,
+        int? pageSize,
+        string sortField = "name",
+        string sortDirection = "asc"
+    )
+
+    {
+        var spec = new OrganisationsSearchSpecification
+        (
+            new()
+            {
+                SearchNameTerm = searchRequest.SearchNameTerm?.ToLower(),
+                ExcludingRoles = searchRequest.ExcludingRoles,
+                Countries = searchRequest.Countries,
+                OrganisationTypes = searchRequest.OrganisationTypes,
+                OrganisationStatuses = searchRequest.OrganisationStatuses
+            }
+        );
+
+        var (organisations, count) = await repository.GetBySpecification(spec, pageIndex, pageSize, sortField, sortDirection);
 
         return new OrganisationSearchResponse
         {
