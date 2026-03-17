@@ -8,7 +8,7 @@ public class Organisation
     public string? Address { get; set; }
     public string? CountryName { get; set; }
     public string Type { get; set; } = null!;
-    public bool? Status { get; set; } = null!;
+    public bool Status { get; set; }
     public DateTime? LastUpdated { get; set; } = null!;
     public DateTime SystemUpdated { get; set; }
     public DateTime Imported { get; set; }

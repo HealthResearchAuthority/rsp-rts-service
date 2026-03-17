@@ -22,14 +22,16 @@ public class OrganisationsController(IOrganisationService orgService) : Controll
     /// <param name="sort">Sort direction: "asc" or "desc".</param>
     /// <param name="sortField">Sort field: "name", "country", or "isactive".</param>
     [HttpGet("searchByName")]
-    public async Task<ActionResult<OrganisationSearchResponse>> SearchByName(
+    public async Task<ActionResult<OrganisationSearchResponse>> SearchByName
+    (
         string name,
         int pageIndex = 1,
         int? pageSize = null,
         string? role = null,
         [FromQuery] string[]? countries = null,
         string sort = "asc",
-        string sortField = "name")
+        string sortField = "name"
+    )
     {
         if (name.Length < 3)
         {
@@ -74,13 +76,15 @@ public class OrganisationsController(IOrganisationService orgService) : Controll
     /// <param name="sort">Sort direction: "asc" or "desc".</param>
     /// <param name="sortField">Sort field: "name", "country", or "isactive".</param>
     [HttpGet("getAll")]
-    public async Task<ActionResult<OrganisationSearchResponse>> GetAll(
+    public async Task<ActionResult<OrganisationSearchResponse>> GetAll
+    (
         int pageIndex = 1,
         int? pageSize = null,
         string? role = null,
         [FromQuery] string[]? countries = null,
         string sort = "asc",
-        string sortField = "name")
+        string sortField = "name"
+    )
     {
         if (pageIndex <= 0)
         {
@@ -116,5 +120,33 @@ public class OrganisationsController(IOrganisationService orgService) : Controll
     {
         var record = await orgService.GetById(id);
         return Ok(record);
+    }
+
+    /// <summary>
+    ///     Query organisations by complete or partial name.
+    /// </summary>
+    /// <param name="request">The search request containing name, pagination, and filter parameters.</param>
+    /// <param name="sort">Sort direction: "asc" or "desc".</param>
+    /// <param name="sortField">Sort field: "name", "country", or "isactive".</param>
+    [HttpPost("searchOrganisations")]
+    public async Task<ActionResult<OrganisationSearchResponse>> SearchOrganisations
+    (
+        OrganisationsSearchRequest request,
+        int pageIndex,
+        int? pageSize,
+        string sort = "asc",
+        string sortField = "name"
+    )
+    {
+        var result = await orgService.SearchOrganisations
+        (
+            request,
+            pageIndex,
+            pageSize,
+            sortField,
+            sort
+        );
+
+        return Ok(result);
     }
 }
