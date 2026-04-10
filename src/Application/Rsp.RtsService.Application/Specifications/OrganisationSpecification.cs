@@ -1,4 +1,5 @@
 ﻿using Ardalis.Specification;
+using Microsoft.EntityFrameworkCore;
 using Rsp.RtsService.Domain.Entities;
 
 namespace Rsp.RtsService.Application.Specifications;
@@ -27,23 +28,31 @@ public class OrganisationSpecification : Specification<Organisation>
         Query.AsNoTracking();
 
         // Organisation must be active
-        Query.Where(x => x.Status == true);
+        Query.Where(x => x.Status);
 
         // Optional role filter
         if (!string.IsNullOrWhiteSpace(roleId))
         {
-            Query.Where(x =>
-                x.Roles.Any(r =>
-                    r.Id == roleId &&
-                    r.Status != null &&
-                    r.Status.ToLower() == "active"));
+            Query.Where
+            (
+                x =>
+                    x.Roles.Any
+                    (
+                        r =>
+                            r.Id == roleId &&
+                            //r.Status != null &&
+                            EF.Functions.Like(r.Status, "%active%")
+                    )
+            );
         }
 
         // Optional name filter (case-insensitive via ToLower)
         if (!string.IsNullOrWhiteSpace(name))
         {
-            var term = name.ToLower();
-            Query.Where(x => x.Name != null && x.Name.ToLower().Contains(term));
+            Query.Where
+            (
+                x => EF.Functions.Like(x.Name, $"%{name}%")
+            );
         }
 
         // Multi-country filter (scalar CountryName)
