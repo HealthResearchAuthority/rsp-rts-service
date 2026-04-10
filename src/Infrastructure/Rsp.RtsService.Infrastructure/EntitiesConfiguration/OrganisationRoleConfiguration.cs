@@ -25,5 +25,8 @@ public class OrganisationRoleConfiguration : IEntityTypeConfiguration<Organisati
             .HasColumnType("varchar(500)");
 
         builder.HasKey(c => new { c.Id, c.OrganisationId, c.Scoper, c.Status, c.StartDate });
+
+        builder
+            .HasIndex(p => new { p.RoleName });
     }
 }

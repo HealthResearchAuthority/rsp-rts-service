@@ -1,4 +1,5 @@
 ﻿using Ardalis.Specification;
+using Microsoft.EntityFrameworkCore;
 using Rsp.RtsService.Application.DTOS.Responses;
 using Rsp.RtsService.Domain.Entities;
 
@@ -22,14 +23,17 @@ public class OrganisationsSearchSpecification : Specification<Organisation>
         {
             Query.Where
             (
-                x => x.Roles.Any(r => !request.ExcludingRoles.Contains(r.Id))
+                x => !x.Roles.Any(r => request.ExcludingRoles.Contains(r.Id))
             );
         }
 
         // Optional name filter
         if (!string.IsNullOrWhiteSpace(request.SearchNameTerm))
         {
-            Query.Where(x => x.Name != null && x.Name.ToLower().Contains(request.SearchNameTerm));
+            Query.Where
+            (
+                x => EF.Functions.Like(x.Name, $"%{request.SearchNameTerm}%")
+            );
         }
 
         // Multi-country filter

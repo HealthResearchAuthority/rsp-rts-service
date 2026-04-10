@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Rsp.RtsService.Domain.Entities;
 
 namespace Rsp.RtsService.Infrastructure.EntitiesConfiguration;
+
 public class OrganisationConfiguration : IEntityTypeConfiguration<Organisation>
 {
     public void Configure(EntityTypeBuilder<Organisation> builder)
@@ -22,5 +23,8 @@ public class OrganisationConfiguration : IEntityTypeConfiguration<Organisation>
             .HasMany(x => x.Roles)
             .WithOne()
             .HasForeignKey(x => x.OrganisationId);
+
+        builder
+            .HasIndex(p => new { p.Name, p.CountryName, p.Type });
     }
 }
