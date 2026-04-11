@@ -124,7 +124,8 @@ public class OrganisationService(IOrganisationRepository repository) : IOrganisa
                 ExcludingRoles = searchRequest.ExcludingRoles,
                 Countries = searchRequest.Countries,
                 OrganisationTypes = searchRequest.OrganisationTypes,
-                OrganisationStatuses = searchRequest.OrganisationStatuses
+                OrganisationStatuses = searchRequest.OrganisationStatuses,
+                ExcludedOrganisationIds = searchRequest.ExcludedOrganisationIds
             }
         );
 

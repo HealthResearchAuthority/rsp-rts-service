@@ -62,8 +62,8 @@ public interface IOrganisationService
     /// <param name="sortDirection">"asc" or "desc". Defaults to "asc".</param>
     Task<OrganisationSearchResponse> SearchOrganisations
     (
-       OrganisationsSearchRequest searchRequest,
-       int pageIndex,
+        OrganisationsSearchRequest searchRequest,
+        int pageIndex,
         int? pageSize,
         string sortField = "name",
         string sortDirection = "asc"

@@ -10,4 +10,5 @@ public record OrganisationsSearchRequest
     public List<string> Countries { get; set; } = [];
     public List<string> OrganisationTypes { get; set; } = [];
     public List<bool> OrganisationStatuses { get; set; } = [];
+    public List<string> ExcludedOrganisationIds { get; set; } = [];
 }
