@@ -93,19 +93,19 @@ public class OrganisationRepository(RtsDbContext context) : IOrganisationReposit
         // perform sorting
         organisations = (sortField, sortDirection) switch
         {
-            ("name", "asc") => [.. organisations.OrderBy(x => x.Name).ThenBy(x => x.Id)],
-            ("name", "desc") => [.. organisations.OrderByDescending(x => x.Name).ThenBy(x => x.Id)],
+            ("name", "asc") => [.. organisations.OrderBy(x => x.Name)],
+            ("name", "desc") => [.. organisations.OrderByDescending(x => x.Name)],
 
-            ("address", "asc") => [.. organisations.OrderBy(x => x.Address).ThenBy(x => x.Id)],
-            ("address", "desc") => [.. organisations.OrderByDescending(x => x.Address).ThenBy(x => x.Id)],
+            ("address", "asc") => [.. organisations.OrderBy(x => x.Address)],
+            ("address", "desc") => [.. organisations.OrderByDescending(x => x.Address)],
 
-            ("type", "asc") => [.. organisations.OrderBy(x => x.Type).ThenBy(x => x.Id)],
-            ("type", "desc") => [.. organisations.OrderByDescending(x => x.Type).ThenBy(x => x.Id)],
+            ("type", "asc") => [.. organisations.OrderBy(x => x.Type)],
+            ("type", "desc") => [.. organisations.OrderByDescending(x => x.Type)],
 
-            ("country", "asc") => [.. organisations.OrderBy(x => x.CountryName).ThenBy(x => x.Id)],
-            ("country", "desc") => [.. organisations.OrderByDescending(x => x.CountryName).ThenBy(x => x.Id)],
+            ("country", "asc") => [.. organisations.OrderBy(x => x.CountryName)],
+            ("country", "desc") => [.. organisations.OrderByDescending(x => x.CountryName)],
 
-            _ => [.. organisations.OrderBy(x => x.Name).ThenBy(x => x.Id)]
+            _ => [.. organisations.OrderBy(x => x.Name)]
         };
 
         // Return the organisations and the total count

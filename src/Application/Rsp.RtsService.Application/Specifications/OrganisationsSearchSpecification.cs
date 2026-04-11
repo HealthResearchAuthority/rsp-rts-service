@@ -27,13 +27,31 @@ public class OrganisationsSearchSpecification : Specification<Organisation>
             );
         }
 
-        // Optional name filter
-        if (!string.IsNullOrWhiteSpace(request.SearchNameTerm))
+        // Optional exclusion of specific organisation IDs
+        if (request.ExcludedOrganisationIds.Count > 0)
         {
             Query.Where
             (
-                x => EF.Functions.Like(x.Name, $"%{request.SearchNameTerm}%")
+                x => !request.ExcludedOrganisationIds.Contains(x.Id)
             );
+        }
+
+        // Optional name filter
+        if (!string.IsNullOrWhiteSpace(request.SearchNameTerm))
+        {
+            var terms = request.SearchNameTerm
+               .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+               .AsEnumerable();
+
+            foreach (var term in terms)
+            {
+                var t = term; // avoid closure issues
+
+                Query.Where
+                (
+                    x => EF.Functions.Like(x.Name, $"%{t}%")
+                );
+            }
         }
 
         // Multi-country filter
