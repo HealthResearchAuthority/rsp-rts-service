@@ -70,45 +70,44 @@ public class OrganisationRepository(RtsDbContext context) : IOrganisationReposit
         string sortDirection
     )
     {
-        var count = await context
-            .Organisation
-            .WithSpecification(specification)
-            .CountAsync();
-
-        var query = context
+        var baseQuery = context
             .Organisation
             .WithSpecification(specification);
 
+        var count = await baseQuery.CountAsync();
+
+        // Order by Name (DB level)
+        var query = baseQuery
+            .OrderBy(x => x.Name);
+
         // Apply pagination if pageSize is specified
-        if (pageSize.HasValue)
+        var topResults = pageSize.HasValue switch
         {
-            query = query
+            true => await query
                 .Skip((pageIndex - 1) * pageSize.Value)
-                .Take(pageSize.Value);
-        }
-
-        // Execute the query
-        var organisations = await query.ToListAsync();
-
-        // perform sorting
-        organisations = (sortField, sortDirection) switch
-        {
-            ("name", "asc") => [.. organisations.OrderBy(x => x.Name)],
-            ("name", "desc") => [.. organisations.OrderByDescending(x => x.Name)],
-
-            ("address", "asc") => [.. organisations.OrderBy(x => x.Address)],
-            ("address", "desc") => [.. organisations.OrderByDescending(x => x.Address)],
-
-            ("type", "asc") => [.. organisations.OrderBy(x => x.Type)],
-            ("type", "desc") => [.. organisations.OrderByDescending(x => x.Type)],
-
-            ("country", "asc") => [.. organisations.OrderBy(x => x.CountryName)],
-            ("country", "desc") => [.. organisations.OrderByDescending(x => x.CountryName)],
-
-            _ => [.. organisations.OrderBy(x => x.Name)]
+                .Take(pageSize.Value)
+                .ToListAsync(),
+            false => await query.ToListAsync()
         };
 
-        // Return the organisations and the total count
-        return (organisations, count);
+        // Sort those N in-memory
+        var organisations = (sortField.ToLower(), sortDirection.ToLower()) switch
+        {
+            ("name", "asc") => topResults.OrderBy(x => x.Name),
+            ("name", "desc") => topResults.OrderByDescending(x => x.Name),
+
+            ("address", "asc") => topResults.OrderBy(x => x.Address),
+            ("address", "desc") => topResults.OrderByDescending(x => x.Address),
+
+            ("type", "asc") => topResults.OrderBy(x => x.Type),
+            ("type", "desc") => topResults.OrderByDescending(x => x.Type),
+
+            ("country", "asc") => topResults.OrderBy(x => x.CountryName),
+            ("country", "desc") => topResults.OrderByDescending(x => x.CountryName),
+
+            _ => topResults.OrderBy(x => x.Name)
+        };
+
+        return (organisations.ToList(), count);
     }
 }
